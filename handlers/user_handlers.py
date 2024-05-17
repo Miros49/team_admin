@@ -12,6 +12,7 @@ from database import DataBase
 from keyboards import UserKeyboards
 from lexicon import *
 from state import UserState
+from utils import generate_proxy, generate_phone_number
 
 from aiocryptopay import AioCryptoPay, Networks
 
@@ -88,19 +89,22 @@ async def options_menu(message: Message):
 @router.callback_query(F.data == callbacks['🔗 Получить прокси'])
 async def get_proxy(callback: CallbackQuery):
     # TODO: proxy logic
-    await callback.message.answer('прокси')
+    await callback.message.answer(generate_proxy())
+    await callback.answer()
 
 
 @router.callback_query(F.data == callbacks['📱 Получить номер'])
 async def get_number(callback: CallbackQuery):
     # TODO: number logic
-    await callback.message.answer('номер')
+    await callback.message.answer(generate_phone_number(), parse_mode='HTML')
+    await callback.answer()
 
 
 @router.callback_query(F.data == callbacks['📟 Генераторы'])
 async def generators(callback: CallbackQuery):
     # TODO: понять, что это такое
     await callback.message.answer('?')
+    await callback.answer()
 
 
 @router.message(F.text == buttons['current_domain'])
