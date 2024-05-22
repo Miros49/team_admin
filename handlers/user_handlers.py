@@ -44,7 +44,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
         displayed_nickname='',
         status='',
         nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
-        current_balance=str(user.balance),
+        current_balance=str(user.balance) if user and user.balance else '0.00',
         total_turnover='',
         percent='?',
         proxy='n',
@@ -68,7 +68,7 @@ async def profile(message: Message):
         displayed_nickname='',
         status='',
         nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
-        current_balance=str(user.balance),
+        current_balance=str(user.balance) if user and user.balance else '0.00',
         total_turnover='',
         percent='?',
         proxy='n',
@@ -124,6 +124,8 @@ async def choose_wallet_for_payout(callback: CallbackQuery):
     user = await db.get_user(callback.from_user.id)
     linked_wallets = await db.get_linked_wallets(callback.from_user.id)
 
+    if not user:
+        await db.set_wallet(callback.from_user.id)
     if not user.balance:
         await callback.message.answer(LEXICON_RU['no_money'])
         if callback.from_user.id in await db.get_all_users():
