@@ -33,6 +33,30 @@ kb = UserKeyboards()
 # router.callback_query(PrivateChat())
 
 
+@router.callback_query(F.data == callbacks[buttons['back']])
+async def back_to_menu(callback: CallbackQuery, state: FSMContext):
+    user = await db.get_user(callback.from_user.id)
+    wallets = await db.get_wallets(callback.from_user.id)
+    await callback.message.edit_text(LEXICON_RU['profile'].format(
+        user_id=callback.from_user.id,
+        lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
+        tutor='',
+        displayed_nickname='',
+        status='',
+        nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
+        current_balance=str(user.balance),
+        total_turnover='',
+        percent='?',
+        proxy='n',
+        numbers='n',
+        btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
+        eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
+        trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
+        tron=f"<code>{wallets.trx}</code>" if wallets and wallets.trx else 'Не привязан'
+    ), reply_markup=kb.profile_kb(), parse_mode='HTML')
+    await state.clear()
+
+
 @router.message(F.text == buttons['profile'])
 async def profile(message: Message):
     user = await db.get_user(message.from_user.id)
@@ -43,31 +67,33 @@ async def profile(message: Message):
         tutor='',
         displayed_nickname='',
         status='',
-        nickname=user.nickname,
+        nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
         current_balance=str(user.balance),
         total_turnover='',
         percent='?',
         proxy='n',
         numbers='n',
-        btc=wallets.btc if wallets and wallets.btc else 'Не привязан',
-        eth=wallets.eth if wallets and wallets.eth else 'Не привязан',
-        trc20=wallets.trc20 if wallets and wallets.trc20 else 'Не привязан',
-        tron=wallets.trx if wallets and wallets.trx else 'Не привязан'
+        btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
+        eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
+        trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
+        tron=f"<code>{wallets.trx}</code>" if wallets and wallets.trx else 'Не привязан'
     ), reply_markup=kb.profile_kb(), parse_mode='HTML')
 
 
 @router.callback_query(F.data == callbacks['🆙 Повысить лимиты'])
 async def profile_menu(callback: CallbackQuery):
+    await callback.answer()
     await callback.message.answer(LEXICON_RU['dev'])
 
 
 @router.callback_query(F.data == callbacks['📝 Изменить информацию'])
 async def profile_menu(callback: CallbackQuery):
+    await callback.answer()
     await callback.message.answer(LEXICON_RU['dev'])
 
 
 @router.callback_query(F.data == callbacks['👛 Привязать кошелек'])
-async def profile_menu(callback: CallbackQuery, state: FSMContext):
+async def profile_menu(callback: CallbackQuery):
     await callback.message.edit_text(LEXICON_RU['choose_wallet'], reply_markup=kb.wallets())
 
 
@@ -78,7 +104,6 @@ async def enter_wallet(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(LEXICON_RU['enter_wallet'].format(wallet.upper()))
     await state.set_state(UserState.enter_wallet)
     await state.update_data({'wallet': wallet})
-    print(wallet)
 
 
 @router.message(StateFilter(UserState.enter_wallet))
@@ -148,7 +173,7 @@ async def request_payout(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == callbacks['⭐️ Установить никнейм'])
 async def enter_nickname(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(LEXICON_RU['enter_nickname'])
+    await callback.message.edit_text(LEXICON_RU['enter_nickname'], reply_markup=kb.back())
     await state.set_state(UserState.enter_nickname)
 
 
@@ -210,19 +235,19 @@ async def generate_tags(message: Message, state: FSMContext):
 @router.callback_query(F.data == callbacks['👧 Girls'])
 async def girls(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer('нужны исходники девочек. для теста могу подкрутить рандомные фотки')
+    await callback.message.answer(LEXICON_RU['dev'] + '\nНужны исходники')
 
 
 @router.callback_query(F.data == callbacks['👻 NFT'])
 async def nfts(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer('то же, что и с девочками')
+    await callback.message.answer(LEXICON_RU['dev'] + '\nНужны исходники')
 
 
 @router.callback_query(F.data == callbacks['🤯 Creo'])
 async def creos(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer('скоро выдам тестовое')
+    await callback.message.answer(LEXICON_RU['dev'])
 
 
 @router.message(F.text == buttons['current_domain'])
@@ -283,7 +308,7 @@ async def information(message: Message):
 
 @router.message(F.text == buttons['tutors'])
 async def tutors(message: Message):
-    await message.answer(LEXICON_RU['tutors'], reply_markup=UserKeyboards.tutors)
+    await message.answer(LEXICON_RU['tutors'], reply_markup=UserKeyboards.tutors())
 
 
 @router.callback_query(F.data == callbacks['📝 Заявка в филиал'])
@@ -292,7 +317,7 @@ async def application_to_branch(callback: CallbackQuery):
 
 
 @router.message(Command('admin'))
-async def admin_menu(message: Message, state: FSMContext):
+async def admin_menu(message: Message):
     await message.answer(LEXICON_RU['not_allowed'])
 
 

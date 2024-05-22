@@ -147,6 +147,9 @@ def create_reply_kb(width: int,
     return kb_builder.as_markup(resize_keyboard=True)
 
 
+back_button: InlineKeyboardButton = InlineKeyboardButton(text=buttons['back'], callback_data=callbacks[buttons['back']])
+
+
 class StartKeyboards:
     def accept_user(self, user_id) -> InlineKeyboardMarkup:
         buttons = dict()
@@ -181,7 +184,8 @@ class UserKeyboards:
             InlineKeyboardButton(text='BTC', callback_data=callbacks['BTC']),
             InlineKeyboardButton(text='ETH', callback_data=callbacks['ETH']),
             InlineKeyboardButton(text='USDT (TRC20)', callback_data=callbacks['USDT (TRC20)']),
-            InlineKeyboardButton(text='TRX', callback_data=callbacks['TRX'])
+            InlineKeyboardButton(text='TRX', callback_data=callbacks['TRX']),
+            back_button
         )
         kb.adjust(2, 2)
         return kb.as_markup()
@@ -190,7 +194,8 @@ class UserKeyboards:
         kb = InlineKeyboardBuilder()
         for i in linked_wallets.keys():
             kb.add(InlineKeyboardButton(text=i, callback_data=f'payout_{i.lower()}'))
-        kb.adjust(2, 2)
+        kb.add(back_button)
+        kb.adjust(2, 2, 1)
 
         return kb.as_markup()
 
@@ -206,7 +211,12 @@ class UserKeyboards:
         callbacks['➕ Добавить промокод']: '➕ Добавить промокод'
     })
 
-    tutors = create_inline_kb_dict(1, {callbacks['📝 Заявка в филиал']: '📝 Заявка в филиал'})
+    def tutors(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(InlineKeyboardButton(text='📝 Заявка в филиал', callback_data=callbacks['📝 Заявка в филиал']),
+               back_button)
+        kb.adjust(1, 1)
+        return kb.as_markup()
 
     def generators(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
@@ -218,6 +228,11 @@ class UserKeyboards:
         )
         kb.adjust(1, 2, 1)
 
+        return kb.as_markup()
+
+    def back(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(back_button)
         return kb.as_markup()
 
 
@@ -232,4 +247,9 @@ class AdminKeyboards:
         )
         kb.adjust(1, 2, 1)
 
+        return kb.as_markup()
+
+    def back(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(back_button)
         return kb.as_markup()
