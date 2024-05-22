@@ -148,7 +148,7 @@ def create_reply_kb(width: int,
 
 
 class StartKeyboards:
-    def accept_user(self, user_id):
+    def accept_user(self, user_id) -> InlineKeyboardMarkup:
         buttons = dict()
         buttons[f'user_accept_{user_id}'] = "✅ Принять"
         buttons[f'user_decline_{user_id}'] = "❌ Отклонить"
@@ -173,7 +173,26 @@ class UserKeyboards:
         )
         kb.adjust(2, 2, 1, 1)
 
-        return kb.as_markup(resize_keyboard=True)
+        return kb.as_markup()
+
+    def wallets(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(text='BTC', callback_data=callbacks['BTC']),
+            InlineKeyboardButton(text='ETH', callback_data=callbacks['ETH']),
+            InlineKeyboardButton(text='USDT (TRC20)', callback_data=callbacks['USDT (TRC20)']),
+            InlineKeyboardButton(text='TRX', callback_data=callbacks['TRX'])
+        )
+        kb.adjust(2, 2)
+        return kb.as_markup()
+
+    def walets_for_payout(self, linked_wallets: dict) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        for i in linked_wallets.keys():
+            kb.add(InlineKeyboardButton(text=i, callback_data=f'payout_{i.lower()}'))
+        kb.adjust(2, 2)
+
+        return kb.as_markup()
 
     options = create_inline_kb_dict(2, {
         callbacks['🔗 Получить прокси']: '🔗 Получить прокси',
@@ -188,3 +207,29 @@ class UserKeyboards:
     })
 
     tutors = create_inline_kb_dict(1, {callbacks['📝 Заявка в филиал']: '📝 Заявка в филиал'})
+
+    def generators(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(text='👮🏿‍♀️ Tags', callback_data=callbacks['👮🏿‍♀️ Tags']),
+            InlineKeyboardButton(text='👧 Girls', callback_data=callbacks['👧 Girls']),
+            InlineKeyboardButton(text='👻 NFT', callback_data=callbacks['👻 NFT']),
+            InlineKeyboardButton(text='🤯 Creo', callback_data=callbacks['🤯 Creo'])
+        )
+        kb.adjust(1, 2, 1)
+
+        return kb.as_markup()
+
+
+class AdminKeyboards:
+    def menu(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(text='📢 Рассылка', callback_data=callbacks['📢 Рассылка']),
+            InlineKeyboardButton(text='➕ Добавить админа', callback_data=callbacks['➕ Добавить админа']),
+            InlineKeyboardButton(text='🗑 Удалить админа', callback_data=callbacks['🗑 Удалить админа']),
+            InlineKeyboardButton(text='🚫👶 Забанить пользователя', callback_data=callbacks['🚫👶 Забанить пользователя'])
+        )
+        kb.adjust(1, 2, 1)
+
+        return kb.as_markup()

@@ -1,1 +1,1 @@
-from config_data.config import load_config, Config
+from config_data.config import load_config, Config, admins

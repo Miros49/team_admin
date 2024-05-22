@@ -1,24 +1,33 @@
 from dataclasses import dataclass
 from environs import Env
 
-
-@dataclass
-class DatabaseConfig:
-    database: str  # �^}азвание баз�^k данн�^k�^e
-    db_host: str  # URL-ад�^`е�^a баз�^k данн�^k�^e
-    db_user: str  # Username пол�^lзова�^bел�^o баз�^k данн�^k�^e
-    db_password: str  # �^=а�^`ол�^l к базе данн�^k�^e
-
+admins: list[int] = []
 
 @dataclass
 class TgBot:
-    token: str  # Токен дл�^o до�^a�^b�^cпа к �^bелег�^`ам-бо�^b�^c
-    admin_ids: list[int]  # Спи�^aок id админи�^a�^b�^`а�^bо�^`ов бо�^bа
+    token: str  # Токен для доступа к боту
+    admin_ids: list[int]  # Список id админов
+    user_chat: int
+    admin_chat: int
+
+
+@dataclass
+class ApiKey:
+    token: str  # Токен для доступа к api для работы с промокодами
+
+
+@dataclass
+class DatabaseConfig:
+    database: str  # Название базы данных
+    db_host: str  # URL-адрес базы данных
+    db_user: str  # Username пользователя базы данных
+    db_password: str  # Пароль к базе данных
 
 
 @dataclass
 class Config:
     tg_bot: TgBot
+    api_key: ApiKey
     db: DatabaseConfig
 
 
@@ -29,7 +38,10 @@ def load_config(path: str | None) -> Config:
     return Config(
         tg_bot=TgBot(
             token=env('BOT_TOKEN'),
-            admin_ids=list(map(int, env.list('ADMIN_IDS')))),
+            admin_ids=list(map(int, env.list('ADMIN_IDS'))),
+            user_chat=env('USERS_GROUP_ID'),
+            admin_chat=env('ADMINS_GROUP_ID')),
+        api_key=ApiKey(env('API_KEY')),
         db=DatabaseConfig(
             database=env('DATABASE'),
             db_host=env('DB_HOST'),

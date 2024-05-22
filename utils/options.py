@@ -9,4 +9,4 @@ def generate_phone_number() -> str:
 
 def generate_proxy() -> str:
     path = ''.join(random.choices('qwertyuiopasdfghjklzxcvbnm//-0123456789', k=15))
-    return f"https://{path}"
+    return f"<a href='https://{path}'>https://{path}</a>"

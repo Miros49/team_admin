@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from config_data import Config, load_config
 from database import DataBase
+from filters import PrivateChat
 from keyboards import StartKeyboards, UserKeyboards
 from lexicon import LEXICON_RU
 from state import UserState
@@ -16,6 +17,8 @@ router: Router = Router()
 db = DataBase(DATABASE_URL)
 bot: Bot = Bot(token=config.tg_bot.token)
 kb = StartKeyboards()
+
+router.message.filter(PrivateChat())
 
 
 @router.message(CommandStart())

@@ -13,7 +13,7 @@ from keyboards import UserKeyboards
 from config_data import Config, load_config
 from database import DataBase
 from handlers import start_handlers, user_handlers, admin_handlers
-from lexicon import LEXICON_RU, LEXICON_ENG
+from lexicon import LEXICON_RU
 
 storage = MemoryStorage()
 
@@ -24,7 +24,7 @@ config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
 
 # Инициализируем бот и диспетчер
-bots: Bot = Bot(token=config.tg_bot.token)
+bot: Bot = Bot(token=config.tg_bot.token)
 dp: Dispatcher = Dispatcher(storage=storage)
 db = DataBase(DATABASE_URL)
 
@@ -40,14 +40,14 @@ async def main():
     # Начинаем обновление баланса каждый день в 15:00
 
     # Пропускаем накопившиеся апдейты и запускаем polling
-    await bots.delete_webhook(drop_pending_updates=True)
-    await bots.set_my_commands(commands=[
-        BotCommand(
-            command='start',
-            description='Начало работы'
-        )
-    ])
-    polling_task = asyncio.create_task(dp.start_polling(bots))
+    await bot.delete_webhook(drop_pending_updates=False)
+    # await bot.set_my_commands(commands=[
+    #     BotCommand(
+    #         command='start',
+    #         description='Начало работы'
+    #     )
+    # ])
+    polling_task = asyncio.create_task(dp.start_polling(bot))
     await asyncio.gather(polling_task)
 
 
