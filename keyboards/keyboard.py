@@ -224,9 +224,10 @@ class UserKeyboards:
             InlineKeyboardButton(text='👮🏿‍♀️ Tags', callback_data=callbacks['👮🏿‍♀️ Tags']),
             InlineKeyboardButton(text='👧 Girls', callback_data=callbacks['👧 Girls']),
             InlineKeyboardButton(text='👻 NFT', callback_data=callbacks['👻 NFT']),
-            InlineKeyboardButton(text='🤯 Creo', callback_data=callbacks['🤯 Creo'])
+            InlineKeyboardButton(text='🤯 Creo', callback_data=callbacks['🤯 Creo']),
+            back_button
         )
-        kb.adjust(1, 2, 1)
+        kb.adjust(1, 2, 1, 1)
 
         return kb.as_markup()
 

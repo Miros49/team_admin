@@ -35,25 +35,33 @@ kb = UserKeyboards()
 
 @router.callback_query(F.data == callbacks[buttons['back']])
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
-    user = await db.get_user(callback.from_user.id)
-    wallets = await db.get_wallets(callback.from_user.id)
-    await callback.message.edit_text(LEXICON_RU['profile'].format(
-        user_id=callback.from_user.id,
-        lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
-        tutor='',
-        displayed_nickname='',
-        status='',
-        nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
-        current_balance=str(user.balance) if user and user.balance else '0.00',
-        total_turnover='',
-        percent='?',
-        proxy='n',
-        numbers='n',
-        btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
-        eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
-        trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
-        tron=f"<code>{wallets.trx}</code>" if wallets and wallets.trx else 'Не привязан'
-    ), reply_markup=kb.profile_kb(), parse_mode='HTML')
+    current_state = await state.get_state()
+    if not current_state or current_state == UserState.enter_nickname:
+        if callback.message.text == LEXICON_RU['select_generator']:
+            return await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+        else:
+            user = await db.get_user(callback.from_user.id)
+            wallets = await db.get_wallets(callback.from_user.id)
+            await callback.message.edit_text(LEXICON_RU['profile'].format(
+                user_id=callback.from_user.id,
+                lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
+                tutor='',
+                displayed_nickname='',
+                status='',
+                nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
+                current_balance=str(user.balance) if user and user.balance else '0.00',
+                total_turnover='',
+                percent='?',
+                proxy='n',
+                numbers='n',
+                btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
+                eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
+                trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
+                tron=f"<code>{wallets.trx}</code>" if wallets and wallets.trx else 'Не привязан'
+            ), reply_markup=kb.profile_kb(), parse_mode='HTML')
+    elif current_state == UserState.generate_tags:
+        await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
+    print(current_state)
     await state.clear()
 
 
@@ -191,12 +199,13 @@ async def set_nickname(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == callbacks['🫂 Реферальная система'])
 async def profile_menu(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
     await callback.message.answer(LEXICON_RU['dev'])
 
 
 @router.message(F.text == buttons['options'])
 async def options_menu(message: Message):
-    await message.answer('🔧Инструменты для работы', reply_markup=kb.options)
+    await message.answer(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
 
 
 @router.callback_query(F.data == callbacks['🔗 Получить прокси'])
@@ -214,13 +223,13 @@ async def get_number(callback: CallbackQuery):
 @router.callback_query(F.data == callbacks['📟 Генераторы'])
 async def generators(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text('📟 Выберите нужный генератор:', reply_markup=kb.generators())
+    await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
 
 
 @router.callback_query(F.data == callbacks['👮🏿‍♀️ Tags'])
 async def tags_generator(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer(LEXICON_RU['enter_tags_prompt'])
+    await callback.message.edit_text(LEXICON_RU['enter_tags_prompt'], reply_markup=kb.back())
     await state.set_state(UserState.generate_tags)
 
 
@@ -310,7 +319,7 @@ async def information(message: Message):
 
 @router.message(F.text == buttons['tutors'])
 async def tutors(message: Message):
-    await message.answer(LEXICON_RU['tutors'], reply_markup=UserKeyboards.tutors())
+    await message.answer(LEXICON_RU['tutors'], reply_markup=kb.tutors())
 
 
 @router.callback_query(F.data == callbacks['📝 Заявка в филиал'])
