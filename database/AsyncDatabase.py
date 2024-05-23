@@ -82,10 +82,10 @@ class DataBase:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-    async def set_user(self, user_id: int):
+    async def set_user(self, user_id: int, lolz_profile: str | None = None):
         async with self.async_session() as session:
             async with session.begin():
-                user = User(id=user_id, balance=0.00)
+                user = User(id=user_id, lolz_profile=lolz_profile, balance=0.00)
                 session.add(user)
                 await session.commit()
                 return user.id

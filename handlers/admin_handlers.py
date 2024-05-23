@@ -29,12 +29,12 @@ router.callback_query.filter(IsAdmin())
 @router.callback_query(F.data.startswith("user_"))
 async def create_ads(callback: CallbackQuery, state: FSMContext):
     user_id = int(callback.data.split("_")[2])
-    lolz = find_lolz_profile(callback.message.text)
+    lolz = find_lolz_profile(callback.message.text).strip()
     await callback.message.answer(lolz + '\n' + str(len(lolz)))
     if callback.data.split("_")[1] == "accept":
-        await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=kb.menu)
+        await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=kb.menu())
         try:
-            await db.set_user(user_id=user_id, lolz_profile=lo)
+            await db.set_user(user_id=user_id, lolz_profile=lolz)
         except Exception as e:
             print(str(e))
     else:
