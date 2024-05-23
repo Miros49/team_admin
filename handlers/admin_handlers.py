@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from config_data import Config, load_config, admins
 from database import DataBase
 from filters import IsAdmin
-from keyboards import AdminKeyboards
+from keyboards import AdminKeyboards, UserKeyboards
 from lexicon import LEXICON_RU, callbacks
 from state import AdminState
 from utils import find_lolz_profile
@@ -32,7 +32,7 @@ async def create_ads(callback: CallbackQuery, state: FSMContext):
     lolz = find_lolz_profile(callback.message.text).strip()
     await callback.message.answer(lolz + '\n' + str(len(lolz)))
     if callback.data.split("_")[1] == "accept":
-        await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=kb.menu())
+        await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
             await db.set_user(user_id=user_id, lolz_profile=lolz)
         except Exception as e:
