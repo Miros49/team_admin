@@ -61,7 +61,8 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
             ), reply_markup=kb.profile_kb(), parse_mode='HTML')
     elif current_state == UserState.generate_tags:
         await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
-    print(current_state)
+    elif current_state == UserState.enter_promo:
+        await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
     await state.clear()
 
 
@@ -286,8 +287,7 @@ async def handler_create_promo(callback: CallbackQuery):
 @router.callback_query(F.data == callbacks['📈 Статистика промокодов'])
 async def promo_statistics(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer('Введите промокод\n||и помолитесь, чтоб сработало||',
-                                  parse_mode='MarkdownV2')
+    await callback.message.answer('Введите промокод', reply_markup=kb.back())
     await state.set_state(UserState.enter_promo)
 
 

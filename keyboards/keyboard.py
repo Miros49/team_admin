@@ -213,9 +213,7 @@ class UserKeyboards:
 
     def tutors(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
-        kb.row(InlineKeyboardButton(text='📝 Заявка в филиал', callback_data=callbacks['📝 Заявка в филиал']),
-               back_button)
-        kb.adjust(1, 1)
+        kb.row(InlineKeyboardButton(text='📝 Заявка в филиал', callback_data=callbacks['📝 Заявка в филиал']))
         return kb.as_markup()
 
     def generators(self) -> InlineKeyboardMarkup:
