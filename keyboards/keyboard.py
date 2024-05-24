@@ -207,8 +207,20 @@ class UserKeyboards:
 
     promo = create_inline_kb_dict(1, {
         callbacks['🔷 Получить промокод']: '🔷 Получить промокод',
-        callbacks['📈 Статистика промокодов']: '📈 Статистика промокодов',
-        callbacks['➕ Добавить промокод']: '➕ Добавить промокод'
+        callbacks['📈 Статистика промокодов']: '📈 Статистика промокодов'
+    })
+
+    create_promo = create_inline_kb_dict(2, {
+        callbacks[buttons['random_promo']]: buttons['random_promo'],
+        callbacks[buttons['custom_promo']]: buttons['custom_promo'],
+        callbacks[buttons['back']]: buttons['back']
+    })
+
+    tickers = create_inline_kb_dict(2, {
+        'ticker_btc': 'BTC',
+        'ticker_eth': 'ETH',
+        'ticker_trc20': 'TRC20',
+        'ticker_trx': 'TRX'
     })
 
     def tutors(self) -> InlineKeyboardMarkup:

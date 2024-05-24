@@ -17,3 +17,5 @@ class UserState(StatesGroup):
     generators: State = State()
     generate_tags: State = State()
     enter_payout_amount: State = State()
+    create_promo_amount: State = State()
+    create_promo_custom: State = State()

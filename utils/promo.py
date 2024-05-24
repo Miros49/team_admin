@@ -8,79 +8,59 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 config: Config = load_config('.env')
+api_key = config.api_key.token
+
+proxy = "http://85.195.81.166:11089"
+proxy_auth = aiohttp.BasicAuth('SYqtsA', 'XgGDsn')
 
 
-# async def create_promo(ticker: str, amount: float, user_id: int, count: int = 1, custom_code: str = None) -> dict:
-#     url = "https://higolimo.com/api/createPromo"
-#
-#     params = {
-#         "api_key": api_key,
-#         "ticker": ticker,
-#         "amount": amount,
-#         "count": count,
-#         "promo_tag": user_id,
-#         "custom_code": custom_code
-#     }
-#
-#     async with aiohttp.ClientSession() as session:
-#         try:
-#             async with session.post(url, json=params) as response:
-#                 response.raise_for_status()
-#                 data = await response.json()
-#                 if data.get("success"):
-#                     return {
-#                         "success": True,
-#                         "codes": data.get("codes", []),
-#                         "message": data.get("message", "")
-#                     }
-#                 else:
-#                     return {
-#                         "success": False,
-#                         "message": data.get("message", "Unknown error occurred")
-#                     }
-#         except aiohttp.ClientError as e:
-#             return {"success": False, "message": f"Request failed: {str(e)}"}
-#         except Exception as e:
-#             return {"success": False, "message": f"Unexpected error: {str(e)}"}
-
-
-async def create_promo(ticker: str, amount: float, count: int, promo_tag: str, custom_code: str = None):
-    api_key = config.api_key.token
+async def create_promo(ticker: str, amount: float, user_id: int, count: int = 1, custom_code: str = None) -> dict:
     url = "https://higolimo.com/api/createPromo"
-    payload = {
-        'api_key': api_key,
-        'ticker': ticker,
-        'amount': amount,
-        'count': count,
-        'promo_tag': promo_tag,
+
+    params = {
+        "api_key": api_key,
+        "ticker": ticker,
+        "amount": amount,
+        "count": count,
+        "promo_tag": str(user_id),
+        "custom_code": custom_code
     }
 
-    if custom_code:
-        payload['custom_code'] = custom_code
-
     async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload) as response:
-            if response.status == 200:
-                result = await response.json()
-                return result
-            else:
-                return {'success': False, 'message': f"Error: {response.status}", 'codes': []}
+        try:
+            async with session.post(url, json=params, proxy=proxy, proxy_auth=proxy_auth) as response:
+                response.raise_for_status()
+                data = await response.json()
+                if data.get("success"):
+                    return {
+                        "success": True,
+                        "codes": data.get("codes", []),
+                        "message": data.get("message", "")
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": data.get("message", "Unknown error occurred")
+                    }
+        except aiohttp.ClientError as e:
+            return {"success": False, "message": f"Request failed: {str(e)}"}
+        except Exception as e:
+            return {"success": False, "message": f"Unexpected error: {str(e)}"}
 
 
 async def get_promo_info(code: str, user_id: int, with_country: bool = False) -> dict:
-    api_key = config.api_key.token
     url = "https://higolimo.com/api/get_promo"
 
     params = {
         "api_key": api_key,
         "code": code,
-        "promo_tag": user_id,
+        "promo_tag": str(user_id),
         "with_country": with_country
     }
 
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.post(url, json=params) as response:
+            async with session.post(url, json=params, proxy=proxy, proxy_auth=proxy_auth) as response:
                 response.raise_for_status()
                 data = await response.json()
                 if data.get("success"):

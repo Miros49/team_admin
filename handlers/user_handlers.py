@@ -38,7 +38,9 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     if not current_state or current_state == UserState.enter_nickname:
         if callback.message.text == LEXICON_RU['select_generator']:
-            return await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+            await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+        elif callback.message.text == LEXICON_RU['promo_type']:
+            await callback.message.edit_text(LEXICON_RU['your_promo'], reply_markup=kb.promo)
         else:
             user = await db.get_user(callback.from_user.id)
             wallets = await db.get_wallets(callback.from_user.id)
@@ -275,41 +277,89 @@ async def promo_menu(message: Message):
 @router.callback_query(F.data == callbacks['🔷 Получить промокод'])
 async def handler_create_promo(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer('Тестовое получение промокода:')
-    response = await create_promo('BTC', 0.25, callback.from_user.id)
+    await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
+
+
+@router.callback_query(F.data.startswith('create_promo'))
+async def create_promo_first(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+
+    if callback.data.split('_')[-1] == 'custom':
+        await state.update_data({"custom": True})
+    else:
+        await state.update_data({"custom": False})
+
+    await callback.message.edit_text(LEXICON_RU['promo_ticker'], reply_markup=kb.tickers)
+
+
+@router.callback_query(F.data.startswith('ticker_'))
+async def ticker(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(LEXICON_RU['enter_amount'])
+    data = await state.get_data()
+    await state.set_state(UserState.create_promo_amount)
+    await state.update_data({"custom": data["custom"], "ticker": callback.data.split('_')[1].upper()})
+
+
+@router.message(StateFilter(UserState.create_promo_amount))
+async def create_default_promo(message: Message, state: FSMContext):
+    data = await state.get_data()
+
+    if data["custom"]:
+        await message.answer(LEXICON_RU['enter_custom_promo'])
+        data = await state.get_data()
+        await state.set_state(UserState.create_promo_custom)
+        return await state.update_data({"custom": data["custom"], "ticker": data["ticker"], "amount": float(message.text)})
+
+    response = await create_promo(data["ticker"], float(message.text), message.from_user.id)
     if response["success"]:
         code = response["codes"][0]
-        await callback.message.answer(code)
+        await message.answer(code)
     else:
-        await callback.message.answer(response["message"])
+        await message.answer(response["message"])
+    await state.clear()
+
+
+@router.message(StateFilter(UserState.create_promo_custom))
+async def create_promo_custom(message: Message, state: FSMContext):
+    data = await state.get_data()
+    response = await create_promo(ticker=data["ticker"], amount=data["amount"], user_id=message.from_user.id,
+                                  custom_code=message.text)
+    if response["success"]:
+        code = response["codes"][0]
+        await message.answer('Success, ' + str(code))
+    else:
+        await message.answer(response["message"])
+    await state.clear()
 
 
 @router.callback_query(F.data == callbacks['📈 Статистика промокодов'])
 async def promo_statistics(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer('Введите промокод', reply_markup=kb.back())
+    mes = await callback.message.answer('Введите промокод', reply_markup=kb.back())
     await state.set_state(UserState.enter_promo)
+    await state.update_data({"mes_id": mes.message_id})
 
 
 @router.message(StateFilter(UserState.enter_promo))
 async def check_promo(message: Message, state: FSMContext):
     response = await get_promo_info(message.text, message.from_user.id)
+    text = ''
     if response["success"]:
-        text = ''
-        for key in response.keys():
-            text += f'{key}: {response[key]}'
+        for key, value in response.items():
+            if key == "info":
+                text += "Сумма: {}\n".format(value["amount"])
+                text += "Тикер: {}\n".format(value["ticker"])
+                text += "Общая сумма депозитов: {}\n".format(value["deposit_sum"])
+                text += "Общее число регистраций: {}\n".format(value["users_count"])
+            elif key != "message" and key != "success":
+                text += "{}: {}\n".format(key.capitalize(), value)
     else:
-        text = response["message"]
+        text = "Error: {response['message']}"
 
     await message.answer(text)
+    data = await state.get_data()
+    await bot.edit_message_text(text='Введите промокод', chat_id=message.from_user.id, message_id=data["mes_id"])
     await state.clear()
-
-
-@router.callback_query(F.data == callbacks['➕ Добавить промокод'])
-async def add_promo(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    await callback.message.answer(LEXICON_RU['dev'])
-    # await state.set_state()
 
 
 @router.message(F.text == buttons['information'])
