@@ -62,7 +62,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     elif current_state == UserState.generate_tags:
         await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
     elif current_state == UserState.enter_promo:
-        await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+        await callback.message.edit_text(LEXICON_RU['your_promo'], reply_markup=kb.promo)
     await state.clear()
 
 
