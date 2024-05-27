@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from environs import Env
 
-admins: list[int] = []
+admins: list[int] = [7090370208]
 
 @dataclass
 class TgBot:

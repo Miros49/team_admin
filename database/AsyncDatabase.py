@@ -29,6 +29,7 @@ class User(Base):
     status = Column(Integer, default=0)
     nickname = Column(String)
     balance = Column(DECIMAL(10, 2), default=0.00)
+    username = Column(String, unique=True, nullable=False)
 
 
 class Statistics(Base):
@@ -82,10 +83,10 @@ class DataBase:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-    async def set_user(self, user_id: int, lolz_profile: str | None = None):
+    async def set_user(self, user_id: int, username: str, lolz_profile: str | None = None):
         async with self.async_session() as session:
             async with session.begin():
-                user = User(id=user_id, lolz_profile=lolz_profile, balance=0.00)
+                user = User(id=user_id, username=username, lolz_profile=lolz_profile, balance=0.00)
                 session.add(user)
                 await session.commit()
                 return user.id
@@ -147,6 +148,21 @@ class DataBase:
                 user = result.scalars().first()
                 balance = round(float(user.balance) + amount, 2)
                 user.balance = balance
+                await session.commit()
+
+    async def ban_user(self, user_id: int | None = None, username: str | None = None, ban: bool = True):
+        async with self.async_session() as session:
+            async with session.begin():
+                if user_id:
+                    query = select(User).filter(User.id == user_id)
+                else:
+                    query = select(User).filter(User.username == username)
+                result = await session.execute(query)
+                user = result.scalars().first()
+                if ban:
+                    user.status = -1
+                else:
+                    user.status = 0
                 await session.commit()
 
     async def set_wallet(self, user_id: int):

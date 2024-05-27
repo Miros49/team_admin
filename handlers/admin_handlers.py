@@ -1,9 +1,10 @@
 import asyncio
+from datetime import datetime
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, StateFilter, CommandStart
 from aiogram.handlers import MessageHandler
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ChatPermissions
 from aiogram.fsm.context import FSMContext
 
 from config_data import Config, load_config, admins
@@ -12,7 +13,7 @@ from filters import IsAdmin
 from keyboards import AdminKeyboards, UserKeyboards
 from lexicon import LEXICON_RU, callbacks
 from state import AdminState
-from utils import find_lolz_profile
+from utils import find_lolz_profile, parse_duration
 
 config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
@@ -34,7 +35,7 @@ async def create_ads(callback: CallbackQuery, state: FSMContext):
     if callback.data.split("_")[1] == "accept":
         await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
-            await db.set_user(user_id=user_id, lolz_profile=lolz)
+            await db.set_user(user_id=user_id, username=callback.from_user.username, lolz_profile=lolz)
         except Exception as e:
             print(str(e))
     else:
@@ -89,5 +90,40 @@ async def delete_admin(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == callbacks['🚫👶 Забанить пользователя'])
+async def select_user_for_ban(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(LEXICON_RU['enter_user_ban_info'])
+    await state.set_state(AdminState.ban_user)
+
+
+@router.message(StateFilter(AdminState.ban_user))
 async def ban_user(message: Message, state: FSMContext):
-    await message.answer(LEXICON_RU['dev'])
+    # if len(message.text.split()) == 2:
+    #     user_id, duration = message.text.split()
+    #     if user_id.isdigit():
+    #         user_id = int(user_id)
+    #         chat_id = config.tg_bot.user_chat
+    #         ban_duration = parse_duration(duration)
+    #         if ban_duration is not None:
+    #             until_date = datetime.now() + ban_duration
+    #
+    #             await bot.restrict_chat_member(
+    #                 chat_id=chat_id,
+    #                 user_id=user_id,
+    #                 permissions=ChatPermissions(
+    #                     can_send_messages=False,
+    #                     can_send_media_messages=False,
+    #                     can_send_other_messages=False,
+    #                     can_add_web_page_previews=False
+    #                 ),
+    #                 until_date=until_date
+    #             )
+    #
+    #             await message.reply(f"Пользователь {user_id} забанен на {duration}.")
+    #         else:
+    #             await message.reply("Неверный формат времени бана. Используйте число + s/m/h/d (например, 1d).")
+    #     else:
+    #         await message.reply("Неверный формат ID пользователя.")
+    # else:
+    #     await message.reply("Введите ID пользователя и время бана (например, 12345678 1d).")
+
+    await state.clear()

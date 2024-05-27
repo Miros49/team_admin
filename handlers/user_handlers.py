@@ -1,9 +1,11 @@
 import asyncio
+import io
 import time
 
+import aiofiles
 from aiogram import Dispatcher, F, Bot, Router
 from aiogram.filters import StateFilter, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 
@@ -129,7 +131,7 @@ async def enter_wallet(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data == callbacks['💸 Запросить выплату'])
+@router.callback_query(F.data == callbacks['💸 Запросить выплату'])  # TODO: пофиксь балик
 async def choose_wallet_for_payout(callback: CallbackQuery):
     await callback.answer()
     user = await db.get_user(callback.from_user.id)
@@ -166,7 +168,7 @@ async def request_payout(message: Message, state: FSMContext):
         amount = float(message.text)
         data = await state.get_data()
         user = await db.get_user(message.from_user.id)
-        if 0 < amount < user.balance:
+        if 0 < amount <= user.balance:
             wallet_type = data['wallet_type']
             wallet = await db.get_linked_wallets(message.from_user.id)
             await bot.send_message(chat_id=config.tg_bot.admin_chat, text=LEXICON_RU['payout_info'].format(
@@ -259,9 +261,20 @@ async def nfts(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == callbacks['🤯 Creo'])
-async def creos(callback: CallbackQuery):
+async def creo(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer(LEXICON_RU['dev'])
+    await callback.message.answer(LEXICON_RU['enter_creo_text'])
+    await state.set_state(UserState.enter_creo_text)
+
+
+@router.message(StateFilter(UserState.enter_creo_text))
+async def generate_creo(message: Message, state: FSMContext):
+    await add_text_to_image(message.text)
+    image_path = 'utils/output_image.jpg'
+    image = FSInputFile(image_path)
+    await bot.send_photo(message.from_user.id, photo=image)
+
+    await state.clear()
 
 
 @router.message(F.text == buttons['current_domain'])
@@ -308,7 +321,8 @@ async def create_default_promo(message: Message, state: FSMContext):
         await message.answer(LEXICON_RU['enter_custom_promo'])
         data = await state.get_data()
         await state.set_state(UserState.create_promo_custom)
-        return await state.update_data({"custom": data["custom"], "ticker": data["ticker"], "amount": float(message.text)})
+        return await state.update_data(
+            {"custom": data["custom"], "ticker": data["ticker"], "amount": float(message.text)})
 
     response = await create_promo(data["ticker"], float(message.text), message.from_user.id)
     if response["success"]:

@@ -19,3 +19,4 @@ class UserState(StatesGroup):
     enter_payout_amount: State = State()
     create_promo_amount: State = State()
     create_promo_custom: State = State()
+    enter_creo_text: State = State()
