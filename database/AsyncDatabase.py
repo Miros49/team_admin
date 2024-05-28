@@ -15,9 +15,10 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 meta = MetaData()
 
 
-# class Admin(Base):
-#     __tablename__ = 'admins'
-#     id = Column(BigInteger, primary_key=True)
+class Admin(Base):
+    __tablename__ = 'admins'
+    id = Column(BigInteger, primary_key=True)
+    username = Column(String)
 
 
 class User(Base):
@@ -82,6 +83,57 @@ class DataBase:
     async def create_tables(self):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+
+    async def get_admins_ids(self):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Admin)
+                result = await session.execute(query)
+                admin_ids = [admin.id for admin in result.scalars().all()]
+                return admin_ids
+
+    async def get_admin(self, admin_id: int):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Admin).filter(Admin.id == admin_id)
+                result = await session.execute(query)
+                admin = result.scalars().first()
+                return admin
+
+    async def set_admin_username(self, admin_id: int, username: str):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Admin).filter(Admin.id == admin_id)
+                result = await session.execute(query)
+                admin = result.scalars().first()
+                admin.username = username
+                await session.commit()
+
+    async def add_admin(self, admin_id: int):
+        async with self.async_session() as session:
+            async with session.begin():
+                admin = User(id=admin_id)
+                session.add(admin)
+                return await session.commit()
+
+    async def get_admins(self):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Admin)
+                result = await session.execute(query)
+                admins = result.scalars().all()
+                return admins
+
+    async def delete_admin(self, admin_id: int):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Admin).filter(Admin.id == admin_id)
+                result = await session.execute(query)
+                admin = result.scalars().first()
+                if admin:
+                    await session.delete(admin)
+                    await session.commit()
+                    return True
 
     async def set_user(self, user_id: int, username: str, lolz_profile: str | None = None):
         async with self.async_session() as session:

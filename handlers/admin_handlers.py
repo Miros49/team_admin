@@ -11,7 +11,7 @@ from config_data import Config, load_config, admins
 from database import DataBase
 from filters import IsAdmin
 from keyboards import AdminKeyboards, UserKeyboards
-from lexicon import LEXICON_RU, callbacks
+from lexicon import LEXICON_RU, callbacks, buttons
 from state import AdminState
 from utils import find_lolz_profile, parse_duration
 
@@ -42,10 +42,26 @@ async def create_ads(callback: CallbackQuery, state: FSMContext):
         await bot.send_message(user_id, LEXICON_RU['decline user'])
 
 
+@router.callback_query(F.data == callbacks[buttons['back']])
+async def back_button_pressed(callback: CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state == AdminState.enter_admin_id:
+        await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
+                                         reply_markup=kb.menu())
+    elif callback.message.text.startswith(LEXICON_RU['choose_admin_to_delete']):
+        await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
+                                         reply_markup=kb.menu())
+
+
 @router.message(Command('admin'))
 async def admin_menu(message: Message, state: FSMContext):
     mes = await message.answer(LEXICON_RU['not_allowed'])
-    await asyncio.sleep(1)
+
+    admin = await db.get_admin(message.from_user.id)
+    if not admin.username or admin.username != message.from_user.username:
+        await db.set_admin_username(message.from_user.id, message.from_user.username)
+
+    await asyncio.sleep(0.9)
     await mes.delete()
     joke = await message.answer(LEXICON_RU['joke'])
     await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=kb.menu())
@@ -69,28 +85,51 @@ async def admin_launch_mailing(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == callbacks['➕ Добавить админа'])
 async def enter_admin_id(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(LEXICON_RU['enter_id'])
+    await callback.message.edit_text(LEXICON_RU['enter_id'], reply_markup=await kb.back())
     await state.set_state(AdminState.enter_admin_id)
+    await state.update_data({"message_id": callback.message.message_id})
 
 
 @router.message(StateFilter(AdminState.enter_admin_id))
 async def add_admin(message: Message, state: FSMContext):
     new_admin = message.text
     if new_admin.isdigit():
-        admins.append(int(new_admin))
-        await message.answer(LEXICON_RU['admin_added'].format(message.text))
+        try:
+            await db.add_admin(int(new_admin))
+            await message.answer(LEXICON_RU['admin_added'].format(message.text))
+        except Exception as e:
+            await message.answer(f'Произошла ошибка: {str(e)}\nПопробуйте позже')
+            await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=kb.menu())
         await state.clear()
     else:
-        await message.answer(LEXICON_RU['wrong_format'])
+        mes = await message.answer(LEXICON_RU['wrong_format'], reply_markup=await kb.back())
+        data = await state.get_data()
+        await bot.edit_message_text(LEXICON_RU['enter_id'], message.chat.id, data['message_id'])
+        await state.update_data({"message_id": mes.message_id})
 
 
 @router.callback_query(F.data == callbacks['🗑 Удалить админа'])
-async def delete_admin(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(LEXICON_RU['dev'])
+async def delete_admin_menu(callback: CallbackQuery, state: FSMContext):
+    text = LEXICON_RU['choose_admin_to_delete'] + '\n'
+    for admin in await db.get_admins():
+        text += f'\n{str(admin.id)} ({"@" + str(admin.username) if admin.username else "Не активирован"})'
+
+    await callback.message.edit_text(text, reply_markup=await kb.delete_admin(
+        callback.from_user.id))  # TODO: лексикон пропиши
+
+
+@router.callback_query(F.data == 'delete_admin_')
+async def delete_admin(callback: CallbackQuery):
+    if await db.delete_admin(int(callback.message.text.split('_')[-1])):
+        await callback.message.answer(LEXICON_RU['admin_deleted'])
+    else:
+        await callback.message.answer('Похоже, что такого администратора не существует 🤕\nОбратитесь к разработчику')
+    await callback.answer(LEXICON_RU['admin_menu'].format(callback.from_user.first_name), reply_markup=kb.menu())
 
 
 @router.callback_query(F.data == callbacks['🚫👶 Забанить пользователя'])
 async def select_user_for_ban(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
     await callback.message.answer(LEXICON_RU['enter_user_ban_info'])
     await state.set_state(AdminState.ban_user)
 
@@ -125,5 +164,10 @@ async def ban_user(message: Message, state: FSMContext):
     #         await message.reply("Неверный формат ID пользователя.")
     # else:
     #     await message.reply("Введите ID пользователя и время бана (например, 12345678 1d).")
+
+    if message.text.isdigit() and await db.user_exists(int(message.text)):
+        pass
+
+    await message.answer(LEXICON_RU['dev'])
 
     await state.clear()

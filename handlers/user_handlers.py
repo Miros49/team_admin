@@ -11,7 +11,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config_data import Config, load_config
 from database import DataBase
-from filters import PrivateChat
+from filters import IsUser, PrivateChat
 from keyboards import UserKeyboards
 from lexicon import *
 from state import UserState
@@ -31,8 +31,8 @@ dp: Dispatcher = Dispatcher(storage=storage)
 kb = UserKeyboards()
 
 
-# router.message.filter(PrivateChat())
-# router.callback_query(PrivateChat())
+router.message.filter(PrivateChat(), IsUser())
+router.callback_query(PrivateChat(), IsUser())
 
 
 @router.callback_query(F.data == callbacks[buttons['back']])

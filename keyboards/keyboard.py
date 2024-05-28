@@ -260,7 +260,21 @@ class AdminKeyboards:
 
         return kb.as_markup()
 
-    def back(self) -> InlineKeyboardMarkup:
+    async def back(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
+        kb.row(back_button)
+        return kb.as_markup()
+
+    async def delete_admin(self, self_id) -> InlineKeyboardMarkup:
+        admins = await db.get_admins()
+        kb = InlineKeyboardBuilder()
+        for admin in admins:
+            if admin.id == self_id:
+                continue
+            if admin.username:
+                kb.row(InlineKeyboardButton(text=str(admin.username), callback_data=f'delete_admin_{str(admin.id)}'))
+            else:
+                kb.row(InlineKeyboardButton(text=str(admin.id), callback_data=f'delete_admin_{str(admin.id)}'))
+        kb.adjust(2)
         kb.row(back_button)
         return kb.as_markup()

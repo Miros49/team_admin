@@ -14,10 +14,7 @@ db = DataBase(DATABASE_URL)
 
 class IsAdmin(Filter):
     async def __call__(self, message: Message, *args, **kwargs):
-        user = await db.get_user(message.from_user.id)
-        if user.status == -1:
-            await message.answer("Вы забанены")
-        return message.from_user.id in ADMIN_IDS or message.from_user.id in admins
+        return message.from_user.id in ADMIN_IDS or message.from_user.id in await db.get_admins_ids()
 
 
 class IsUser(Filter):
