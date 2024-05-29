@@ -4,7 +4,15 @@ from datetime import timedelta
 
 
 def find_lolz_profile(text: str) -> str:
-    lolz_profile = text[text.find('Профиль Lolz:') + 14:text.find('Опыт работы:') - 1]
+    lines = text.strip().split('\n')
+
+    lolz_profile = None
+
+    for line in lines:
+        if line.startswith('Профиль Lolz:'):
+            lolz_profile = line.split('Профиль Lolz:')[1].strip()
+            break
+
     return lolz_profile
 
 
@@ -23,3 +31,21 @@ def parse_duration(duration: str) -> timedelta | None:
     elif unit == 'd':
         return timedelta(days=value)
     return None
+
+
+def parse_deposit(text: str):
+    lines = text.strip().split('\n')
+
+    amount = None
+    worker = None
+
+    for line in lines:
+        if line.startswith('сумма:'):
+            try:
+                amount = float(line.split('сумма:')[1].strip())
+            except ValueError:
+                raise ValueError("Некорректная сумма")
+        elif line.startswith('воркер:'):
+            worker = line.split('воркер:')[1].strip()
+
+    return amount, worker

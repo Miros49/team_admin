@@ -1,19 +1,13 @@
 import asyncio
 import logging
-import time
-from datetime import datetime, timedelta
 
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types.bot_command import BotCommand
-from aiogram.types.input_file import FSInputFile
 
-from keyboards import UserKeyboards
 from config_data import Config, load_config
 from database import DataBase
-from handlers import start_handlers, user_handlers, admin_handlers
-from lexicon import LEXICON_RU
+from handlers import start_handlers, user_handlers, admin_handlers, payments_handlers
 
 storage = MemoryStorage()
 
@@ -30,8 +24,9 @@ db = DataBase(DATABASE_URL)
 
 # Регистриуем роутеры в диспетчере
 dp.include_router(start_handlers.router)
-dp.include_router(admin_handlers.router)
 dp.include_router(user_handlers.router)
+dp.include_router(admin_handlers.router)
+dp.include_router(payments_handlers.router)
 
 
 # Функция конфигурирования и запуска бота

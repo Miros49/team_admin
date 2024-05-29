@@ -1,1 +1,1 @@
-from filters.filters import IsUser, IsAdmin, PrivateChat
+from filters.filters import *

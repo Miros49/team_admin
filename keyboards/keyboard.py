@@ -161,7 +161,7 @@ class StartKeyboards:
 class UserKeyboards:
     menu = create_menu_reply_kb(
         [buttons['profile'], buttons['options'], buttons['current_domain'], buttons['promo'],
-         buttons['information'], buttons['tutors']]
+         buttons['information']]  # , buttons['tutors']]
     )
 
     def profile_kb(self) -> InlineKeyboardMarkup:
@@ -220,7 +220,8 @@ class UserKeyboards:
         'ticker_btc': 'BTC',
         'ticker_eth': 'ETH',
         'ticker_trc20': 'TRC20',
-        'ticker_trx': 'TRX'
+        'ticker_trx': 'TRX',
+        callbacks[buttons['back']]: buttons['back']
     })
 
     def tutors(self) -> InlineKeyboardMarkup:

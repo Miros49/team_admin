@@ -27,10 +27,11 @@ class User(Base):
     lolz_profile = Column(String)
     tutor = Column(String)
     name_in_withdraws = Column(String)
-    status = Column(Integer, default=0)
+    status = Column(String, default="Воркер")
     nickname = Column(String)
     balance = Column(DECIMAL(10, 2), default=0.00)
     username = Column(String, unique=True, nullable=False)
+    banned = Column(Integer, default=0)
 
 
 class Statistics(Base):
@@ -135,6 +136,14 @@ class DataBase:
                     await session.commit()
                     return True
 
+    async def get_admins_usernames(self):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(User)
+                result = await session.execute(query)
+                user_ids = [user.id for user in result.scalars().all()]
+                return user_ids
+
     async def set_user(self, user_id: int, username: str, lolz_profile: str | None = None):
         async with self.async_session() as session:
             async with session.begin():
@@ -205,16 +214,13 @@ class DataBase:
     async def ban_user(self, user_id: int | None = None, username: str | None = None, ban: bool = True):
         async with self.async_session() as session:
             async with session.begin():
-                if user_id:
-                    query = select(User).filter(User.id == user_id)
-                else:
-                    query = select(User).filter(User.username == username)
+                query = select(User).filter(User.id == user_id)
                 result = await session.execute(query)
                 user = result.scalars().first()
                 if ban:
-                    user.status = -1
+                    user.banned = 1
                 else:
-                    user.status = 0
+                    user.banned = 0
                 await session.commit()
 
     async def set_wallet(self, user_id: int):

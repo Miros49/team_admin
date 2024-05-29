@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from environs import Env
 
-admins: list[int] = [7090370208]
 
 @dataclass
 class TgBot:
@@ -9,11 +8,20 @@ class TgBot:
     admin_ids: list[int]  # Список id админов
     user_chat: int
     admin_chat: int
+    payments_channel: int
 
 
 @dataclass
 class ApiKey:
     token: str  # Токен для доступа к api для работы с промокодами
+
+
+@dataclass
+class Proxy:
+    ip: str
+    port: str
+    login: str
+    password: str
 
 
 @dataclass
@@ -28,6 +36,7 @@ class DatabaseConfig:
 class Config:
     tg_bot: TgBot
     api_key: ApiKey
+    proxy: Proxy
     db: DatabaseConfig
 
 
@@ -39,9 +48,16 @@ def load_config(path: str | None) -> Config:
         tg_bot=TgBot(
             token=env('BOT_TOKEN'),
             admin_ids=list(map(int, env.list('ADMIN_IDS'))),
-            user_chat=env('USERS_GROUP_ID'),
-            admin_chat=env('ADMINS_GROUP_ID')),
+            user_chat=env('USERS_CHAT_ID'),
+            admin_chat=env('ADMINS_CHAT_ID'),
+            payments_channel=env('PAYMENTS_CHANNEL_ID')),
         api_key=ApiKey(env('API_KEY')),
+        proxy=Proxy(
+            ip=env('PROXY_IP'),
+            port=env('PROXY_PORT'),
+            login=env('PROXY_LOGIN'),
+            password=env('PROXY_PASSWORD')
+        ),
         db=DatabaseConfig(
             database=env('DATABASE'),
             db_host=env('DB_HOST'),

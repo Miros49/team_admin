@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 config: Config = load_config('.env')
 api_key = config.api_key.token
 
-proxy = "http://85.195.81.166:11089"
-proxy_auth = aiohttp.BasicAuth('SYqtsA', 'XgGDsn')
+proxy = f"http://{config.proxy.ip}:{config.proxy.port}"
+proxy_auth = aiohttp.BasicAuth(config.proxy.login, config.proxy.password)
 
 
 async def create_promo(ticker: str, amount: float, user_id: int, count: int = 1, custom_code: str = None) -> dict:

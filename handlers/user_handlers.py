@@ -11,7 +11,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config_data import Config, load_config
 from database import DataBase
-from filters import IsUser, PrivateChat
+from filters import IsUser, PrivateChat, IsNotBanned
 from keyboards import UserKeyboards
 from lexicon import *
 from state import UserState
@@ -31,8 +31,8 @@ dp: Dispatcher = Dispatcher(storage=storage)
 kb = UserKeyboards()
 
 
-router.message.filter(PrivateChat(), IsUser())
-router.callback_query(PrivateChat(), IsUser())
+router.message.filter(PrivateChat(), IsUser(), IsNotBanned())
+router.callback_query(PrivateChat(), IsUser(), IsNotBanned())
 
 
 @router.callback_query(F.data == callbacks[buttons['back']])
@@ -43,16 +43,17 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
             await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
         elif callback.message.text == LEXICON_RU['promo_type']:
             await callback.message.edit_text(LEXICON_RU['your_promo'], reply_markup=kb.promo)
+        elif callback.message.text == LEXICON_RU['promo_ticker']:
+            await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
         else:
             user = await db.get_user(callback.from_user.id)
             wallets = await db.get_wallets(callback.from_user.id)
             await callback.message.edit_text(LEXICON_RU['profile'].format(
                 user_id=callback.from_user.id,
+                nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
                 lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
                 tutor='',
-                displayed_nickname='',
-                status='',
-                nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
+                status=user.status,
                 current_balance=str(user.balance) if user and user.balance else '0.00',
                 total_turnover='',
                 percent='?',
@@ -76,11 +77,10 @@ async def profile(message: Message):
     wallets = await db.get_wallets(message.from_user.id)
     await message.answer(LEXICON_RU['profile'].format(
         user_id=message.from_user.id,
-        lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
-        tutor='',
-        displayed_nickname='',
-        status='',
         nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
+        lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
+        tutor='Нет',
+        status=user.status,
         current_balance=str(user.balance) if user and user.balance else '0.00',
         total_turnover='',
         percent='?',
@@ -131,7 +131,7 @@ async def enter_wallet(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data == callbacks['💸 Запросить выплату'])  # TODO: пофиксь балик
+@router.callback_query(F.data == callbacks['💸 Запросить выплату'])
 async def choose_wallet_for_payout(callback: CallbackQuery):
     await callback.answer()
     user = await db.get_user(callback.from_user.id)
@@ -349,7 +349,7 @@ async def create_promo_custom(message: Message, state: FSMContext):
 @router.callback_query(F.data == callbacks['📈 Статистика промокодов'])
 async def promo_statistics(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    mes = await callback.message.answer('Введите промокод', reply_markup=kb.back())
+    mes = await callback.message.edit_text(LEXICON_RU['enter_promo'], reply_markup=kb.back())
     await state.set_state(UserState.enter_promo)
     await state.update_data({"mes_id": mes.message_id})
 
@@ -404,12 +404,3 @@ async def add_money(message: Message, state: FSMContext):
         await message.answer('done')
     except Exception as e:
         await message.answer(str(e))
-
-# @router.callback_query()
-# async def temp(callback: CallbackQuery):
-#     await callback.message.answer(callback.data)
-
-
-# @router.message(Command('id'))
-# async def calosbornik(message: Message):
-#     await message.answer(str(message.chat.id))

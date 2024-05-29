@@ -7,13 +7,14 @@ from aiogram.handlers import MessageHandler
 from aiogram.types import Message, CallbackQuery, ChatPermissions
 from aiogram.fsm.context import FSMContext
 
-from config_data import Config, load_config, admins
+from config_data import Config, load_config
 from database import DataBase
 from filters import IsAdmin
 from keyboards import AdminKeyboards, UserKeyboards
 from lexicon import LEXICON_RU, callbacks, buttons
 from state import AdminState
 from utils import find_lolz_profile, parse_duration
+
 
 config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
@@ -28,10 +29,10 @@ router.callback_query.filter(IsAdmin())
 
 
 @router.callback_query(F.data.startswith("user_"))
-async def create_ads(callback: CallbackQuery, state: FSMContext):
+async def create_ads(callback: CallbackQuery):
+    await callback.answer()
     user_id = int(callback.data.split("_")[2])
-    lolz = find_lolz_profile(callback.message.text).strip()
-    await callback.message.answer(lolz + '\n' + str(len(lolz)))
+    lolz = find_lolz_profile(callback.message.text)
     if callback.data.split("_")[1] == "accept":
         await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
@@ -67,6 +68,7 @@ async def admin_menu(message: Message, state: FSMContext):
     await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=kb.menu())
     await asyncio.sleep(1)
     await joke.delete()
+    await state.clear()
 
 
 @router.callback_query(F.data == callbacks['📢 Рассылка'])
@@ -115,7 +117,7 @@ async def delete_admin_menu(callback: CallbackQuery, state: FSMContext):
         text += f'\n{str(admin.id)} ({"@" + str(admin.username) if admin.username else "Не активирован"})'
 
     await callback.message.edit_text(text, reply_markup=await kb.delete_admin(
-        callback.from_user.id))  # TODO: лексикон пропиши
+        callback.from_user.id))
 
 
 @router.callback_query(F.data == 'delete_admin_')
@@ -165,9 +167,12 @@ async def ban_user(message: Message, state: FSMContext):
     # else:
     #     await message.reply("Введите ID пользователя и время бана (например, 12345678 1d).")
 
-    if message.text.isdigit() and await db.user_exists(int(message.text)):
-        pass
-
-    await message.answer(LEXICON_RU['dev'])
-
+    if message.text.isdigit():
+        if await db.user_exists(int(message.text)):
+            await db.ban_user(message.from_user.id)
+            await message.answer(f"Пользователь {str(message.from_user.id)} ({'username'}) забанен")
+        else:
+            await message.answer('Такого пользователя не существует')  # TODO: лексикон
+    else:
+        await message.answer(LEXICON_RU['wrong_format'])
     await state.clear()
