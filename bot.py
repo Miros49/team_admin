@@ -32,10 +32,8 @@ dp.include_router(payments_handlers.router)
 # Функция конфигурирования и запуска бота
 async def main():
     await db.create_tables()
-    # Начинаем обновление баланса каждый день в 15:00
 
-    # Пропускаем накопившиеся апдейты и запускаем polling
-    await bot.delete_webhook(drop_pending_updates=False)
+    await bot.delete_webhook(drop_pending_updates=True)
     # await bot.set_my_commands(commands=[
     #     BotCommand(
     #         command='start',

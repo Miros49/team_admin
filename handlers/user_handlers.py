@@ -215,14 +215,14 @@ async def options_menu(message: Message):
 
 @router.callback_query(F.data == callbacks['🔗 Получить прокси'])
 async def get_proxy(callback: CallbackQuery):
-    await callback.message.answer(generate_proxy(), parse_mode='HTML')
+    await callback.message.answer(await generate_proxy(), parse_mode='HTML')
     await callback.answer()
 
 
 @router.callback_query(F.data == callbacks['📱 Получить номер'])
 async def get_number(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(generate_phone_number(), parse_mode='HTML')
+    await callback.message.answer(await generate_phone_number(), parse_mode='HTML')
 
 
 @router.callback_query(F.data == callbacks['📟 Генераторы'])
@@ -231,11 +231,11 @@ async def generators(callback: CallbackQuery):
     await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
 
 
-@router.callback_query(F.data == callbacks['👮🏿‍♀️ Tags'])
+@router.callback_query(F.data == callbacks[buttons['tags']])
 async def tags_generator(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    await callback.message.edit_text(LEXICON_RU['enter_tags_prompt'], reply_markup=kb.back())
+    mes = await callback.message.edit_text(LEXICON_RU['enter_tags_prompt'], reply_markup=kb.back())
     await state.set_state(UserState.generate_tags)
+    await state.update_data({"message_id": mes.message_id})
 
 
 @router.message(StateFilter(UserState.generate_tags))
@@ -246,34 +246,59 @@ async def generate_tags(message: Message, state: FSMContext):
     else:
         await message.answer('Произошла ошибка, попробуйте позже\n\n{}'.format(data['message']))
     await state.clear()
+    state_data = await state.get_data()
+    await bot.edit_message_text(LEXICON_RU['enter_tags_prompt'], message.from_user.id, state_data["message_id"])
+
 
 
 @router.callback_query(F.data == callbacks['👧 Girls'])
 async def girls(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(LEXICON_RU['dev'] + '\nНужны исходники')
+    await callback.message.edit_text(LEXICON_RU['dev'] + '\nНужны исходники')
 
 
 @router.callback_query(F.data == callbacks['👻 NFT'])
 async def nfts(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(LEXICON_RU['dev'] + '\nНужны исходники')
+    await callback.message.edit_text(LEXICON_RU['dev'] + '\nНужны исходники')
 
 
-@router.callback_query(F.data == callbacks['🤯 Creo'])
+@router.callback_query(F.data == callbacks[buttons['creo']])
 async def creo(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    await callback.message.answer(LEXICON_RU['enter_creo_text'])
-    await state.set_state(UserState.enter_creo_text)
+    await callback.message.edit_text(LEXICON_RU['enter_creo_domain'], parse_mode='HTML')
+    await state.set_state(UserState.enter_creo_domain)
 
 
-@router.message(StateFilter(UserState.enter_creo_text))
-async def generate_creo(message: Message, state: FSMContext):
-    await add_text_to_image(message.text)
-    image_path = 'utils/output_image.jpg'
-    image = FSInputFile(image_path)
-    await bot.send_photo(message.from_user.id, photo=image)
+@router.message(StateFilter(UserState.enter_creo_domain))
+async def creo_domain(message: Message, state: FSMContext):
+    await message.answer(LEXICON_RU['enter_creo_promo'], parse_mode='HTML')
+    await state.set_state(UserState.enter_creo_promo)
+    await state.update_data({"domain": message.text})
 
+
+@router.message(StateFilter(UserState.enter_creo_promo))
+async def creo_promo(message: Message, state: FSMContext):
+    await message.answer(LEXICON_RU['enter_creo_amount'], parse_mode='HTML')
+    data = await state.get_data()
+    await state.set_state(UserState.enter_creo_amount)
+    await state.update_data({"domain": data["domain"], "promo": message.text})
+
+
+@router.message(StateFilter(UserState.enter_creo_amount))
+async def generate_creo_handler(message: Message, state: FSMContext):
+    try:
+        data = await state.get_data()
+        image_path = await generate_creo(
+            domain=data["domain"],
+            promo=data["promo"],
+            amount=message.text,
+            user_id=message.from_user.id
+        )
+        image = FSInputFile(image_path)
+        await bot.send_photo(message.from_user.id, photo=image)
+    except Exception as e:
+        await message.answer(LEXICON_RU['error'])
+        print(f"\nОшибка генерации изображения: {str(e)}\n")
     await state.clear()
 
 

@@ -61,11 +61,14 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'enter_amount': '💲 На какую сумму создать промокод?',
     'enter_custom_promo': '✍️ Введите кастомный промокод',
     'enter_promo': '✍️ Введите промокод',
-    'enter_user_ban_info': '✍️🦍 Введите телеграм id или ник (в формате @username) пользователя, которого хотите забанить',
-    'enter_creo_text': 'Введите текст (👨‍🔬 тест)',
+    'enter_user_ban_info': '✍️🦍 Введите телеграм id пользователя, которого хотите забанить',
+    'enter_creo_domain': '<b>Введите домен\nПример:</b> <code>higolimo.com</code>',
+    'enter_creo_promo': '<b>Введите промокод\nПример:</b> <code>G97DW3SX5</code>',
+    'enter_creo_amount': '<b>Введите сумму промокода\nПример:</b> <code>0.01 ETH</code>',
     'choose_admin_to_delete': '👇 Выберите, какого админа хотите удалить:',
     'admin_deleted': '✅ Админ удалён',
-    'new_deposit': 'Новый депозит'
+    'new_deposit': 'Новый депозит',
+    'error': '👾 Произошла ошибка, попробуйте позже'
 }
 
 buttons: dict[str, str] = {
@@ -77,7 +80,9 @@ buttons: dict[str, str] = {
     'tutors': '👩‍🏫 Наставники/Филиалы',
     'back': '🔙 Назад',
     'random_promo': '🎲 Случайный',
-    'custom_promo': '✍️ Кастомный'
+    'custom_promo': '✍️ Кастомный',
+    'tags': '#️⃣ Tags',
+    'creo': '🌄 Creo'
 }
 
 callbacks: dict[str, str] = {
@@ -95,10 +100,10 @@ callbacks: dict[str, str] = {
     '📱 Получить номер': 'get_number',
     '📟 Генераторы': 'generators',
     '📝 Заявка в филиал': 'application_to_branch',
-    '👮🏿‍♀️ Tags': 'generator_tags',
+    buttons['tags']: 'generator_tags',
     '👧 Girls': 'generator_girl',
     '👻 NFT': 'generator_nft',
-    '🤯 Creo': 'generator_creo',
+    buttons['creo']: 'generator_creo',
     'BTC': 'wallet_btc',
     'ETH': 'wallet_eth',
     'USDT (TRC20)': 'wallet_trc20',

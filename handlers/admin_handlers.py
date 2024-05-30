@@ -54,8 +54,8 @@ async def back_button_pressed(callback: CallbackQuery, state: FSMContext):
                                          reply_markup=kb.menu())
 
 
-@router.message(Command('admin'))
-async def admin_menu(message: Message, state: FSMContext):
+@router.message(Command('admin'))  # TODO: только ждя крутых
+async def admin_menu(message: Message, state: FSMContext):  # TODO: профиль создаётся криво. у типов юзернеймы карявятся
     mes = await message.answer(LEXICON_RU['not_allowed'])
 
     admin = await db.get_admin(message.from_user.id)

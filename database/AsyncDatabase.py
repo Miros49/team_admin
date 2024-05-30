@@ -26,7 +26,6 @@ class User(Base):
     id = Column(BigInteger, primary_key=True)
     lolz_profile = Column(String)
     tutor = Column(String)
-    name_in_withdraws = Column(String)
     status = Column(String, default="Воркер")
     nickname = Column(String)
     balance = Column(DECIMAL(10, 2), default=0.00)

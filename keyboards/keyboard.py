@@ -232,10 +232,10 @@ class UserKeyboards:
     def generators(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.row(
-            InlineKeyboardButton(text='👮🏿‍♀️ Tags', callback_data=callbacks['👮🏿‍♀️ Tags']),
+            InlineKeyboardButton(text=buttons['tags'], callback_data=callbacks[buttons['tags']]),
             InlineKeyboardButton(text='👧 Girls', callback_data=callbacks['👧 Girls']),
             InlineKeyboardButton(text='👻 NFT', callback_data=callbacks['👻 NFT']),
-            InlineKeyboardButton(text='🤯 Creo', callback_data=callbacks['🤯 Creo']),
+            InlineKeyboardButton(text=buttons['creo'], callback_data=callbacks[buttons['creo']]),
             back_button
         )
         kb.adjust(1, 2, 1, 1)
