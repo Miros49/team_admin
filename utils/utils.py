@@ -41,10 +41,7 @@ def parse_deposit(text: str):
 
     for line in lines:
         if line.startswith('сумма:'):
-            try:
-                amount = float(line.split('сумма:')[1].strip())
-            except ValueError:
-                raise ValueError("Некорректная сумма")
+            amount = float(line.split('сумма:')[1].strip())
         elif line.startswith('воркер:'):
             worker = line.split('воркер:')[1].strip()
 

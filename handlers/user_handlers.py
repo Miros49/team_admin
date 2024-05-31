@@ -403,7 +403,7 @@ async def check_promo(message: Message, state: FSMContext):
 
 @router.message(F.text == buttons['information'])
 async def information(message: Message):
-    await message.answer(LEXICON_RU['information'])
+    await message.answer(LEXICON_RU['information'], reply_markup=await kb.info())
 
 
 @router.message(F.text == buttons['tutors'])

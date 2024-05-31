@@ -242,6 +242,16 @@ class UserKeyboards:
 
         return kb.as_markup()
 
+    async def info(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(text=buttons['workers_chat'], url=callbacks[buttons['workers_chat']]),
+            InlineKeyboardButton(text=buttons['payments_channel'], url=callbacks[buttons['payments_channel']]),
+            InlineKeyboardButton(text=buttons['info_channel'], url=callbacks[buttons['info_channel']])
+        )
+        kb.adjust(2, 1)
+        return kb.as_markup()
+
     def back(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.row(back_button)

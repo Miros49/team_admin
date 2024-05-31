@@ -39,7 +39,7 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'enter_tags_prompt': 'Введите ключевое(ые) слово(а)',
     'your_promo': '📜 Ваши промокоды',
     'promo_type': 'Какой промокод нужно создать?',
-    'information': 'ℹ️ some information',
+    'information': 'Вы можете вступить в наши чаты:',
     'dev': '🧑‍💻 В разработке',
     'choose_wallet': '👇 Выберите, какой кошелёк желаете привязать:',
     'enter_wallet': '📝 Введите кошелёк {}',
@@ -68,7 +68,8 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'choose_admin_to_delete': '👇 Выберите, какого админа хотите удалить:',
     'admin_deleted': '✅ Админ удалён',
     'new_deposit': 'Новый депозит',
-    'error': '👾 Произошла ошибка, попробуйте позже'
+    'error': '👾 Произошла ошибка, попробуйте позже',
+    'worker_not_found': '‼️ <b>Ошибка выплаты</b> ‼️\n\nВоркер -  {} ({})\nСумма - {}$'
 }
 
 buttons: dict[str, str] = {
@@ -82,7 +83,10 @@ buttons: dict[str, str] = {
     'random_promo': '🎲 Случайный',
     'custom_promo': '✍️ Кастомный',
     'tags': '#️⃣ Tags',
-    'creo': '🌄 Creo'
+    'creo': '🌄 Creo',
+    'payments_channel': '💸 Канал с выплатами',
+    'info_channel': 'ℹ️ Канал с информацией',
+    'workers_chat': '💬 Чат'
 }
 
 callbacks: dict[str, str] = {
@@ -112,5 +116,8 @@ callbacks: dict[str, str] = {
     '➕ Добавить админа': 'add_admin',
     '🗑 Удалить админа': 'delete_admin',
     '🚫👶 Забанить пользователя': 'ban_user',
-    buttons['back']: 'back_button'
+    buttons['back']: 'back_button',
+    buttons['payments_channel']: 'https://t.me/+isjHdms-SxhhZTYy',
+    buttons['info_channel']: 'https://t.me/+Xfcr0LA6ksdiOGRi',
+    buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy'
 }

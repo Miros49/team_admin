@@ -1,21 +1,13 @@
-import asyncio
-import io
-import time
-
-import aiofiles
 from aiogram import Dispatcher, F, Bot, Router
-from aiogram.filters import StateFilter, Command
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config_data import Config, load_config
 from database import DataBase
 from filters import Payment
-from keyboards import UserKeyboards
 from lexicon import *
-from state import UserState
-from utils import *
+from utils import parse_deposit
 
 config: Config = load_config('.env')
 
@@ -29,10 +21,24 @@ storage = MemoryStorage()
 bot: Bot = Bot(token=config.tg_bot.token)
 dp: Dispatcher = Dispatcher(storage=storage)
 
-
 router.message.filter(Payment())
 
 
-@router.message(F.text.startswith(LEXICON_RU['new_deposit']))
-async def parse_deposit(message: Message):
-    print(message.text)  # TODO: доделать
+@router.message(F.text.startswith(LEXICON_RU['new_deposit']))  # TODO: доделать
+async def new_payout(message: Message):
+    amount, worker = parse_deposit(message.text)
+    try:
+        try:
+            user = await db.get_user_by_username(worker)
+            await bot.send_message(user.id, 'Новая выплата!\nпотом допишешь')  # TODO: лексикон
+        except Exception as e:
+            print(f"\n\n{str(e)}\n\n")
+    except Exception as e:
+        try:
+            user = await db.get_user_by_username(worker)
+            await bot.send_message(config.tg_bot.admin_chat,
+                                   LEXICON_RU['user_not_found'].format(user.username, user.id, amount))
+        except:
+            await bot.send_message(config.tg_bot.admin_chat,
+                                   LEXICON_RU['user_not_found'].format('Не найден', 'id не найден', amount))
+        print(f"\n\n{str(e)}\n\n")

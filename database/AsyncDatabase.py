@@ -159,6 +159,14 @@ class DataBase:
                 user = result.scalars().first()
                 return user
 
+    async def get_user_by_username(self, username: str):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(User).filter(User.username == username)
+                result = await session.execute(query)
+                user = result.scalars().first()
+                return user
+
     async def user_exists(self, user_id: int):
         async with self.async_session() as session:
             async with session.begin():
