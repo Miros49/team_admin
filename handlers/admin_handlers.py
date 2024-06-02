@@ -37,10 +37,12 @@ async def create_ads(callback: CallbackQuery):
         await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
             await db.set_user(user_id=user_id, username=callback.from_user.username, lolz_profile=lolz)
+            await callback.message.edit_text(callback.message.text + LEXICON_RU['accepted'], parse_mode='HTML')
         except Exception as e:
             print(str(e))
     else:
         await bot.send_message(user_id, LEXICON_RU['decline user'])
+        await callback.message.edit_text(callback.message.text + LEXICON_RU['denied'], parse_mode='HTML')
 
 
 @router.callback_query(F.data == callbacks[buttons['back']])
@@ -54,18 +56,19 @@ async def back_button_pressed(callback: CallbackQuery, state: FSMContext):
                                          reply_markup=kb.menu())
 
 
-@router.message(Command('admin'))  # TODO: только ждя крутых
-async def admin_menu(message: Message, state: FSMContext):  # TODO: профиль создаётся криво. у типов юзернеймы карявятся
+@router.message(Command('admin'))
+async def admin_menu(message: Message, state: FSMContext):
     mes = await message.answer(LEXICON_RU['not_allowed'])
 
     admin = await db.get_admin(message.from_user.id)
     if not admin.username or admin.username != message.from_user.username:
         await db.set_admin_username(message.from_user.id, message.from_user.username)
 
-    await asyncio.sleep(0.9)
+    await asyncio.sleep(0.8)
     await mes.delete()
     joke = await message.answer(LEXICON_RU['joke'])
-    await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=kb.menu())
+    markup = kb.super_menu() if message.from_user.id in config.tg_bot.admin_ids else kb.menu()
+    await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=markup)
     await asyncio.sleep(1)
     await joke.delete()
     await state.clear()
@@ -99,6 +102,7 @@ async def add_admin(message: Message, state: FSMContext):
         try:
             await db.add_admin(int(new_admin))
             await message.answer(LEXICON_RU['admin_added'].format(message.text))
+            await db.set_status(int(new_admin), 'Админ')
         except Exception as e:
             await message.answer(f'Произошла ошибка: {str(e)}\nПопробуйте позже')
             await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=kb.menu())

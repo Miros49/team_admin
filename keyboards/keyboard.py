@@ -252,6 +252,15 @@ class UserKeyboards:
         kb.adjust(2, 1)
         return kb.as_markup()
 
+    async def creo(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.add(
+            InlineKeyboardButton(text=buttons['creo_yt_mr_beast'], callback_data=callbacks[buttons['creo_yt_mr_beast']])
+        )
+
+        return kb.as_markup()
+
+
     def back(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.row(back_button)
@@ -259,7 +268,7 @@ class UserKeyboards:
 
 
 class AdminKeyboards:
-    def menu(self) -> InlineKeyboardMarkup:
+    def super_menu(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.row(
             InlineKeyboardButton(text='📢 Рассылка', callback_data=callbacks['📢 Рассылка']),
@@ -268,6 +277,16 @@ class AdminKeyboards:
             InlineKeyboardButton(text='🚫👶 Забанить пользователя', callback_data=callbacks['🚫👶 Забанить пользователя'])
         )
         kb.adjust(1, 2, 1)
+
+        return kb.as_markup()
+
+    def menu(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(text='📢 Рассылка', callback_data=callbacks['📢 Рассылка']),
+            InlineKeyboardButton(text='🚫👶 Забанить пользователя', callback_data=callbacks['🚫👶 Забанить пользователя'])
+        )
+        kb.adjust(1, 1)
 
         return kb.as_markup()
 

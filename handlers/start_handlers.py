@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Bot, Router
 from aiogram.filters import StateFilter, CommandStart
 from aiogram.types import Message
@@ -60,6 +62,7 @@ async def set_link(message: Message, state: FSMContext):
         await bot.send_message(
             admin_id,
             LEXICON_RU['profile to admin'].format(
+                username=message.from_user.username,
                 user_id=message.from_user.id,
                 lolz_profile=profile_info['lolz_profile'],
                 work_exp=profile_info['work_exp'],

@@ -1,3 +1,4 @@
+import os
 import aiohttp
 import aiofiles
 import cv2
@@ -33,13 +34,23 @@ async def get_youtube_tags(query):
             return {"success": False, "message": "Ошибка парсинга JSON"}
 
 
-async def generate_creo(domain: str, promo: str, amount: str, user_id: str | int) -> str:
-    image_path = 'utils/creo/sources/test_img.jpg'
-    output_path = f'utils/creo/output/image_{str(user_id)}.jpg'
-    position = (470, 350)
-    font_path = ''  # Путь к файлу шрифта
-    font_size = 1  # Размер шрифта (в единицах, подходящих для cv2.putText)
-    color = (240, 220, 240)  # Цвет текста (в формате BGR для OpenCV)
+async def generate_creo(photo: str, domain: str, promo: str, amount: str, user_id: str | int) -> str:
+    output_path = f'img/creo/output/image_{str(user_id)}.jpg'
+    font_path = ''  # Path to the font file if needed
+    font_size = 1.5
+    font_thickness = 5
+    color = (200, 200, 200)  # Text color (in BGR format for OpenCV)
+
+    if photo == 'yt_mr_beast_button':
+        image_path = 'img/creo/sources/yt_mr_beast.png'
+        domain_position = (1015, 330)
+        promo_position = (1170, 440)
+        amount_position = (763, 558)
+    else:
+        image_path = 'img/creo/sources/yt_mr_beast.png'
+        domain_position = (800, 340)
+        promo_position = (950, 480)
+        amount_position = (640, 580)
 
     async with aiofiles.open(image_path, mode='rb') as file:
         content = await file.read()
@@ -47,14 +58,29 @@ async def generate_creo(domain: str, promo: str, amount: str, user_id: str | int
     image = cv2.imdecode(np.frombuffer(content, np.uint8), cv2.IMREAD_COLOR)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(image, domain, position, font, font_size, color, 2, cv2.LINE_AA)
-    position = (470, 450)
-    cv2.putText(image, promo, position, font, font_size, color, 2, cv2.LINE_AA)
-    position = (470, 550)
-    cv2.putText(image, amount, position, font, font_size, color, 2, cv2.LINE_AA)
+
+    def put_centered_text(img, text, position, font, font_size, color, thickness):
+        text_size = cv2.getTextSize(text, font, font_size, thickness)[0]
+        text_x = position[0] - text_size[0] // 2
+        text_y = position[1] + text_size[1] // 2
+        cv2.putText(img, text, (text_x, text_y), font, font_size, color, thickness, cv2.LINE_AA)
+
+    put_centered_text(image, domain, domain_position, font, font_size, color, font_thickness)
+    put_centered_text(image, promo, promo_position, font, font_size, color, font_thickness)
+    put_centered_text(image, amount, amount_position, font, font_size, color, font_thickness + 1)
 
     _, buffer = cv2.imencode('.jpg', image)
     async with aiofiles.open(output_path, mode='wb') as file:
         await file.write(buffer.tobytes())
 
     return output_path
+
+
+def get_random_nft(num_files=5):
+    directory = os.path.join(os.getcwd(), 'img', 'nft')
+    all_files = os.listdir(directory)
+    png_files = [file for file in all_files if file.lower().endswith('.jpg')]
+
+    random_files = random.sample(png_files, num_files)
+
+    return [os.path.join(directory, file) for file in random_files]

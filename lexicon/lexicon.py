@@ -1,9 +1,11 @@
 LEXICON_RU: dict[str, str | list[str]] = {
-    'profile to admin': 'Пользоваель: <code>{user_id}</code>\n\n'
+    'profile to admin': 'Пользоваель: @{username} (<code>{user_id}</code>)\n\n'
                         'Профиль Lolz: {lolz_profile}\n\n'
                         'Опыт работы: {work_exp}\n\n'
                         'Сколько времени готов уделять: {work_time}',
-    'create_profile': ['Профиль лолз', 'Опыт работы', 'Время работы', 'Заявка успешно отправлена'],
+    'accepted': '\n\n✅ <b>Принят</b>',
+    'denied': '\n\n❌ <b>Отклонён</b>',
+    'create_profile': ['Профиль лолз', 'Опыт работы', 'Сколько времени готов уделять?   ', 'Заявка успешно отправлена'],
     'accept user': '✅ Вы успешно приняты в команду Renegade Team\n\nВам доступно меню воркера',
     'decline user': 'К сожалению мы пока не готовы с вами работать, если у вас есть вопросы можете '
                     'отписать @Ambassador_LZT',
@@ -64,7 +66,7 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'enter_user_ban_info': '✍️🦍 Введите телеграм id пользователя, которого хотите забанить',
     'enter_creo_domain': '<b>Введите домен\nПример:</b> <code>higolimo.com</code>',
     'enter_creo_promo': '<b>Введите промокод\nПример:</b> <code>G97DW3SX5</code>',
-    'enter_creo_amount': '<b>Введите сумму промокода\nПример:</b> <code>0.01 ETH</code>',
+    'enter_creo_amount': '<b>Введите сумму промокода\nПример:</b> <code>0.25 BTC</code>',
     'choose_admin_to_delete': '👇 Выберите, какого админа хотите удалить:',
     'admin_deleted': '✅ Админ удалён',
     'new_deposit': 'Новый депозит',
@@ -86,7 +88,8 @@ buttons: dict[str, str] = {
     'creo': '🌄 Creo',
     'payments_channel': '💸 Канал с выплатами',
     'info_channel': 'ℹ️ Канал с информацией',
-    'workers_chat': '💬 Чат'
+    'workers_chat': '💬 Чат',
+    'creo_yt_mr_beast': 'YT | Mr. Beast'
 }
 
 callbacks: dict[str, str] = {
@@ -119,5 +122,6 @@ callbacks: dict[str, str] = {
     buttons['back']: 'back_button',
     buttons['payments_channel']: 'https://t.me/+isjHdms-SxhhZTYy',
     buttons['info_channel']: 'https://t.me/+Xfcr0LA6ksdiOGRi',
-    buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy'
+    buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy',
+    buttons['creo_yt_mr_beast']: 'creo_yt_mr_beast_button'
 }

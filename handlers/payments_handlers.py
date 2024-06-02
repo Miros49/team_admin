@@ -30,7 +30,7 @@ async def new_payout(message: Message):
     try:
         try:
             user = await db.get_user_by_username(worker)
-            await bot.send_message(user.id, 'Новая выплата!\nпотом допишешь')  # TODO: лексикон
+            await bot.send_message(user.id, 'Новая выплата!\nпотом допишу')  # TODO: лексикон
         except Exception as e:
             print(f"\n\n{str(e)}\n\n")
     except Exception as e:

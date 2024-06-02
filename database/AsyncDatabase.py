@@ -208,6 +208,15 @@ class DataBase:
                 user.nickname = nickname
                 await session.commit()
 
+    async def set_status(self, user_id: int, status: str):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(User).filter(User.id == user_id)
+                result = await session.execute(query)
+                user = result.scalars().first()
+                user.status = status
+                await session.commit()
+
     async def edit_balance(self, user_id: int, amount: float):
         async with self.async_session() as session:
             async with session.begin():

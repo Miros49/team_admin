@@ -8,6 +8,7 @@ from aiogram.filters import StateFilter, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.utils.media_group import MediaGroupBuilder
 
 from config_data import Config, load_config
 from database import DataBase
@@ -250,7 +251,6 @@ async def generate_tags(message: Message, state: FSMContext):
     await bot.edit_message_text(LEXICON_RU['enter_tags_prompt'], message.from_user.id, state_data["message_id"])
 
 
-
 @router.callback_query(F.data == callbacks['👧 Girls'])
 async def girls(callback: CallbackQuery):
     await callback.answer()
@@ -259,21 +259,32 @@ async def girls(callback: CallbackQuery):
 
 @router.callback_query(F.data == callbacks['👻 NFT'])
 async def nfts(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text(LEXICON_RU['dev'] + '\nНужны исходники')
+    await callback.message.edit_text(callback.message.text)
+    media_group = MediaGroupBuilder()
+    for img in get_random_nft():
+        media_group.add(type="photo", media=FSInputFile(img))
+
+    await bot.send_media_group(callback.from_user.id, media=media_group.build())
 
 
 @router.callback_query(F.data == callbacks[buttons['creo']])
-async def creo(callback: CallbackQuery, state: FSMContext):
+async def creo(callback: CallbackQuery):
+    await callback.message.edit_text('🔥 CREO:', reply_markup=await kb.creo())
+
+
+@router.callback_query(F.data.startswith(callbacks[buttons['creo_yt_mr_beast']]))
+async def creo_photo(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(LEXICON_RU['enter_creo_domain'], parse_mode='HTML')
     await state.set_state(UserState.enter_creo_domain)
+    await state.update_data({"photo": callback.data[5:]})
 
 
 @router.message(StateFilter(UserState.enter_creo_domain))
 async def creo_domain(message: Message, state: FSMContext):
     await message.answer(LEXICON_RU['enter_creo_promo'], parse_mode='HTML')
     await state.set_state(UserState.enter_creo_promo)
-    await state.update_data({"domain": message.text})
+    data = await state.get_data()
+    await state.update_data({"photo": data["photo"], "domain": message.text})
 
 
 @router.message(StateFilter(UserState.enter_creo_promo))
@@ -281,7 +292,7 @@ async def creo_promo(message: Message, state: FSMContext):
     await message.answer(LEXICON_RU['enter_creo_amount'], parse_mode='HTML')
     data = await state.get_data()
     await state.set_state(UserState.enter_creo_amount)
-    await state.update_data({"domain": data["domain"], "promo": message.text})
+    await state.update_data({"photo": data["photo"], "domain": data["domain"], "promo": message.text})
 
 
 @router.message(StateFilter(UserState.enter_creo_amount))
@@ -289,6 +300,7 @@ async def generate_creo_handler(message: Message, state: FSMContext):
     try:
         data = await state.get_data()
         image_path = await generate_creo(
+            photo=data["photo"],
             domain=data["domain"],
             promo=data["promo"],
             amount=message.text,
