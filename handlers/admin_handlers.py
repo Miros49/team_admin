@@ -15,7 +15,6 @@ from lexicon import LEXICON_RU, callbacks, buttons
 from state import AdminState
 from utils import find_lolz_profile, parse_duration
 
-
 config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
 # Инициализируем роутер уровня модуля
@@ -33,6 +32,11 @@ async def create_ads(callback: CallbackQuery):
     await callback.answer()
     user_id = int(callback.data.split("_")[2])
     lolz = find_lolz_profile(callback.message.text)
+
+    if await db.user_exists(user_id):
+        return await callback.message.edit_text(callback.message.text + LEXICON_RU['already_accepted'],
+                                                parse_mode='HTML')
+
     if callback.data.split("_")[1] == "accept":
         await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
@@ -42,41 +46,45 @@ async def create_ads(callback: CallbackQuery):
             print(str(e))
     else:
         await bot.send_message(user_id, LEXICON_RU['decline user'])
-        await callback.message.edit_text(callback.message.text + LEXICON_RU['denied'], parse_mode='HTML')
+        await callback.message.edit_text(callback.message.text + LEXICON_RU['denied'],
+                                         parse_mode='HTML')  # TODO: если кто-то отклонит, остальные не увидят
 
 
-@router.callback_query(F.data == callbacks[buttons['back']])
+@router.callback_query(F.data == callbacks[buttons['admin_back']])  # TODO: пофиксь
 async def back_button_pressed(callback: CallbackQuery, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state == AdminState.enter_admin_id:
-        await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
-                                         reply_markup=kb.menu())
-    elif callback.message.text.startswith(LEXICON_RU['choose_admin_to_delete']):
-        await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
-                                         reply_markup=kb.menu())
+    markup = kb.super_menu() if callback.from_user.id in config.tg_bot.admin_ids else kb.menu()
+    await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
+                                     reply_markup=markup)
+    await state.clear()
 
 
 @router.message(Command('admin'))
 async def admin_menu(message: Message, state: FSMContext):
     mes = await message.answer(LEXICON_RU['not_allowed'])
-
     admin = await db.get_admin(message.from_user.id)
-    if not admin.username or admin.username != message.from_user.username:
-        await db.set_admin_username(message.from_user.id, message.from_user.username)
 
     await asyncio.sleep(0.8)
     await mes.delete()
+
     joke = await message.answer(LEXICON_RU['joke'])
+
     markup = kb.super_menu() if message.from_user.id in config.tg_bot.admin_ids else kb.menu()
     await message.answer(LEXICON_RU['admin_menu'].format(message.from_user.first_name), reply_markup=markup)
+
     await asyncio.sleep(1)
     await joke.delete()
     await state.clear()
 
+    if message.from_user.id not in await db.get_admins_ids():
+        await db.add_admin(message.from_user.id)
+
+    if not admin.username or admin.username != message.from_user.username:
+        await db.set_admin_username(message.from_user.id, message.from_user.username)
+
 
 @router.callback_query(F.data == callbacks['📢 Рассылка'])
 async def admin_mailing(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(LEXICON_RU['enter_mail'])
+    await callback.message.edit_text(LEXICON_RU['enter_mail'], reply_markup=await kb.back())
     await state.set_state(AdminState.enter_message)
 
 

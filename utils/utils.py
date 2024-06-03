@@ -46,3 +46,21 @@ def parse_deposit(text: str):
             worker = line.split('воркер:')[1].strip()
 
     return amount, worker
+
+
+async def get_percent(total_turnover: float) -> int:
+    if total_turnover < 10000:
+        return 50
+    elif total_turnover < 60000:
+        return 55
+    elif total_turnover < 140000:
+        return 60
+    elif total_turnover < 240000:
+        return 65
+    return 70
+
+
+async def get_limits(total_turnover: float) -> dict:
+    if total_turnover < 10000:
+        return {"proxy": 1, "numbers": 0}
+    return {"proxy": 3, "numbers": 1}

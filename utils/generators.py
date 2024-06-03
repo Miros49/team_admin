@@ -37,20 +37,41 @@ async def get_youtube_tags(query):
 async def generate_creo(photo: str, domain: str, promo: str, amount: str, user_id: str | int) -> str:
     output_path = f'img/creo/output/image_{str(user_id)}.jpg'
     font_path = ''  # Path to the font file if needed
-    font_size = 1.5
-    font_thickness = 5
     color = (200, 200, 200)  # Text color (in BGR format for OpenCV)
-
-    if photo == 'yt_mr_beast_button':
+    if photo == 'yt_mr_beast':
         image_path = 'img/creo/sources/yt_mr_beast.png'
         domain_position = (1015, 330)
         promo_position = (1170, 440)
         amount_position = (763, 558)
+        domain_size = 1.5
+        promo_size = 1.5
+        amount_size = 2.5
+        domain_thickness = 5
+        promo_thickness = 5
+        amount_thickness = 6
+    elif photo == 'poster_elon_musk':
+        image_path = 'img/creo/sources/poster_elon_musk.png'
+        domain_position = (672, 675)
+        promo_position = (667, 1389)
+        amount_position = (650, 777)
+        domain_size = 0.88
+        promo_size = 1.5
+        amount_size = 0.8
+        domain_thickness = 2
+        promo_thickness = 4
+        amount_thickness = 2
     else:
-        image_path = 'img/creo/sources/yt_mr_beast.png'
-        domain_position = (800, 340)
-        promo_position = (950, 480)
-        amount_position = (640, 580)
+        image_path = 'none'
+        print(87)
+        domain_position = (671, 677)
+        promo_position = (667, 1380)
+        amount_position = (668, 776)
+        domain_size = 0.88
+        promo_size = 1.4
+        amount_size = 0.8
+        domain_thickness = 2
+        promo_thickness = 3
+        amount_thickness = 2
 
     async with aiofiles.open(image_path, mode='rb') as file:
         content = await file.read()
@@ -65,9 +86,9 @@ async def generate_creo(photo: str, domain: str, promo: str, amount: str, user_i
         text_y = position[1] + text_size[1] // 2
         cv2.putText(img, text, (text_x, text_y), font, font_size, color, thickness, cv2.LINE_AA)
 
-    put_centered_text(image, domain, domain_position, font, font_size, color, font_thickness)
-    put_centered_text(image, promo, promo_position, font, font_size, color, font_thickness)
-    put_centered_text(image, amount, amount_position, font, font_size, color, font_thickness + 1)
+    put_centered_text(image, domain, domain_position, font, domain_size, color, domain_thickness)
+    put_centered_text(image, promo, promo_position, font, promo_size, color, promo_thickness)
+    put_centered_text(image, amount, amount_position, font, amount_size, color, amount_thickness)
 
     _, buffer = cv2.imencode('.jpg', image)
     async with aiofiles.open(output_path, mode='wb') as file:

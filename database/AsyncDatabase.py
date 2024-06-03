@@ -23,7 +23,7 @@ class Admin(Base):
 
 class User(Base):
     __tablename__ = 'users'
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, unique=True)
     lolz_profile = Column(String)
     tutor = Column(String)
     status = Column(String, default="Воркер")
@@ -31,6 +31,8 @@ class User(Base):
     balance = Column(DECIMAL(10, 2), default=0.00)
     username = Column(String, unique=True, nullable=False)
     banned = Column(Integer, default=0)
+    users_count = Column(Integer, default=0)
+    total_turnover = Column(DECIMAL(10, 2), default=0.00)
 
 
 class Statistics(Base):

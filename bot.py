@@ -24,8 +24,8 @@ db = DataBase(DATABASE_URL)
 
 # Регистриуем роутеры в диспетчере
 dp.include_router(start_handlers.router)
-dp.include_router(admin_handlers.router)
 dp.include_router(user_handlers.router)
+dp.include_router(admin_handlers.router)
 dp.include_router(payments_handlers.router)
 
 

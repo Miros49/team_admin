@@ -5,29 +5,30 @@ LEXICON_RU: dict[str, str | list[str]] = {
                         'Сколько времени готов уделять: {work_time}',
     'accepted': '\n\n✅ <b>Принят</b>',
     'denied': '\n\n❌ <b>Отклонён</b>',
+    'already_accepted': '\n\n✅ Пользователь уже принят другим админом',
     'create_profile': ['Профиль лолз', 'Опыт работы', 'Сколько времени готов уделять?   ', 'Заявка успешно отправлена'],
-    'accept user': '✅ Вы успешно приняты в команду Renegade Team\n\nВам доступно меню воркера',
+    'accept user': '✅ Вы приняты в команду Renegade Team\n\nВам доступно меню воркера',
     'decline user': 'К сожалению мы пока не готовы с вами работать, если у вас есть вопросы можете '
                     'отписать @Ambassador_LZT',
-    'profile': '👤 Общая информация:\n'
+    'profile': '<u>👤 Общая информация:</u>\n'
                'L🪪 ID:  <code>{user_id}</code>\n'
                'L⭐️ Никнейм:  {nickname}\n'
                'L👉 Профиль lolz:  <code>{lolz}</code>\n'
                'L👩‍🏫 Наставник: {tutor}\n'
                'L⚜️ Статус:  {status}\n\n'
-               '📈 Статистика:\n'
-               'L💵 Текущий баланс:  <code>{current_balance}$</code>\n'
-               'L💸 Общий оборот:  {total_turnover}\n'
-               'L🚀 Процент:  {percent}\n'
-               'L👥 Сумма регистраций\n\n'
-               '⁉️ Лимиты:\n'
-               'L🌐 Прокси:  {proxy}\n'
-               'L☎️ Номера:  {numbers}\n\n'
-               '💳 Привязанные кошельки:\n'
-               'L🟠 BTC: {btc}\n'
-               'L🔷 ETH: {eth}\n'
-               'L🟢 USDT (TRC20): {trc20}\n'
-               'L🔻 TRON: {tron}\n',
+               '<u>📈 Статистика:</u>\n'
+               'L💵 Текущий баланс:  <code>{current_balance}</code>$\n'
+               'L💸 Общий оборот:  <code>{total_turnover}</code>$\n'
+               'L🚀 Процент:  <code>{percent}</code>%\n'
+               'L👥 Сумма регистраций:  <code>{users_count}</code>\n\n'
+               '<u>⁉️ Лимиты:</u>\n'
+               'L🌐 Прокси:  <b>{proxy}</b>\n'
+               'L☎️ Номера:  <b>{numbers}</b>\n\n'
+               '<u>💳 Привязанные кошельки:</u>\n'
+               'L🟠 BTC: <code>{btc}</code>\n'
+               'L🔷 ETH: <code>{eth}</code>\n'
+               'L🟢 USDT (TRC20): <code>{trc20}</code>\n'
+               'L🔻 TRON: <code>{tron}</code>\n',
     'no_wallets': 'Для начала привяжите кошелёк в профиле',
     'choose_wallet_for_payout': 'Выберите кошелёк для выплаты',
     'payout_requested': '⏳ Запрос отправлен',
@@ -82,6 +83,7 @@ buttons: dict[str, str] = {
     'information': 'ℹ️ Информация',
     'tutors': '👩‍🏫 Наставники/Филиалы',
     'back': '🔙 Назад',
+    'admin_back': '🔙 Нaзад',
     'random_promo': '🎲 Случайный',
     'custom_promo': '✍️ Кастомный',
     'tags': '#️⃣ Tags',
@@ -89,7 +91,8 @@ buttons: dict[str, str] = {
     'payments_channel': '💸 Канал с выплатами',
     'info_channel': 'ℹ️ Канал с информацией',
     'workers_chat': '💬 Чат',
-    'creo_yt_mr_beast': 'YT | Mr. Beast'
+    'creo_yt_mr_beast': '🔴 YT | Mr. Beast',
+    'creo_poster_elon_musk': '📃 Poster | Elon Musk'
 }
 
 callbacks: dict[str, str] = {
@@ -120,8 +123,10 @@ callbacks: dict[str, str] = {
     '🗑 Удалить админа': 'delete_admin',
     '🚫👶 Забанить пользователя': 'ban_user',
     buttons['back']: 'back_button',
+    buttons['admin_back']: 'admin_back_button',
     buttons['payments_channel']: 'https://t.me/+isjHdms-SxhhZTYy',
     buttons['info_channel']: 'https://t.me/+Xfcr0LA6ksdiOGRi',
     buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy',
-    buttons['creo_yt_mr_beast']: 'creo_yt_mr_beast_button'
+    buttons['creo_yt_mr_beast']: 'creo_button_yt_mr_beast',
+    buttons['creo_poster_elon_musk']: 'creo_button_poster_elon_musk'
 }

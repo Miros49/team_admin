@@ -148,6 +148,8 @@ def create_reply_kb(width: int,
 
 
 back_button: InlineKeyboardButton = InlineKeyboardButton(text=buttons['back'], callback_data=callbacks[buttons['back']])
+admin_back_button: InlineKeyboardButton = InlineKeyboardButton(text=buttons['admin_back'],
+                                                               callback_data=callbacks[buttons['admin_back']])
 
 
 class StartKeyboards:
@@ -255,11 +257,13 @@ class UserKeyboards:
     async def creo(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.add(
-            InlineKeyboardButton(text=buttons['creo_yt_mr_beast'], callback_data=callbacks[buttons['creo_yt_mr_beast']])
+            InlineKeyboardButton(text=buttons['creo_yt_mr_beast'],
+                                 callback_data=callbacks[buttons['creo_yt_mr_beast']]),
+            InlineKeyboardButton(text=buttons['creo_poster_elon_musk'],
+                                 callback_data=callbacks[buttons['creo_poster_elon_musk']])
         )
 
         return kb.as_markup()
-
 
     def back(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
@@ -292,7 +296,7 @@ class AdminKeyboards:
 
     async def back(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
-        kb.row(back_button)
+        kb.row(admin_back_button)
         return kb.as_markup()
 
     async def delete_admin(self, self_id) -> InlineKeyboardMarkup:
@@ -306,5 +310,5 @@ class AdminKeyboards:
             else:
                 kb.row(InlineKeyboardButton(text=str(admin.id), callback_data=f'delete_admin_{str(admin.id)}'))
         kb.adjust(2)
-        kb.row(back_button)
+        kb.row(admin_back_button)
         return kb.as_markup()

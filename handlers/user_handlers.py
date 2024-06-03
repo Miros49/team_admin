@@ -1,8 +1,3 @@
-import asyncio
-import io
-import time
-
-import aiofiles
 from aiogram import Dispatcher, F, Bot, Router
 from aiogram.filters import StateFilter, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
@@ -12,7 +7,7 @@ from aiogram.utils.media_group import MediaGroupBuilder
 
 from config_data import Config, load_config
 from database import DataBase
-from filters import IsUser, PrivateChat, IsNotBanned
+from filters import IsUser, PrivateChat, IsNotBanned, IsNotAdmin
 from keyboards import UserKeyboards
 from lexicon import *
 from state import UserState
@@ -31,7 +26,6 @@ bot: Bot = Bot(token=config.tg_bot.token)
 dp: Dispatcher = Dispatcher(storage=storage)
 kb = UserKeyboards()
 
-
 router.message.filter(PrivateChat(), IsUser(), IsNotBanned())
 router.callback_query(PrivateChat(), IsUser(), IsNotBanned())
 
@@ -49,17 +43,19 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
         else:
             user = await db.get_user(callback.from_user.id)
             wallets = await db.get_wallets(callback.from_user.id)
+            limits = await get_limits(user.total_turnover)
             await callback.message.edit_text(LEXICON_RU['profile'].format(
                 user_id=callback.from_user.id,
                 nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
-                lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
-                tutor='',
+                lolz=user.lolz_profile if user.lolz_profile else 'Нет профиля',
+                tutor='Отсутствует',
                 status=user.status,
-                current_balance=str(user.balance) if user and user.balance else '0.00',
-                total_turnover='',
-                percent='?',
-                proxy='n',
-                numbers='n',
+                current_balance=str(user.balance),
+                total_turnover=str(user.total_turnover),
+                percent=str(await get_percent(user.total_turnover)),
+                users_count=user.users_count,
+                proxy=str(limits["proxy"]),
+                numbers=str(limits["numbers"]),
                 btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
                 eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
                 trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
@@ -76,17 +72,19 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
 async def profile(message: Message):
     user = await db.get_user(message.from_user.id)
     wallets = await db.get_wallets(message.from_user.id)
+    limits = await get_limits(user.total_turnover)
     await message.answer(LEXICON_RU['profile'].format(
         user_id=message.from_user.id,
         nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
-        lolz=user.lolz_profile if user and user.lolz_profile else 'Нет профиля',
-        tutor='Нет',
+        lolz=user.lolz_profile if user.lolz_profile else 'Нет профиля',
+        tutor='Отсутствует',
         status=user.status,
-        current_balance=str(user.balance) if user and user.balance else '0.00',
-        total_turnover='',
-        percent='?',
-        proxy='n',
-        numbers='n',
+        current_balance=str(user.balance),
+        total_turnover=str(user.total_turnover),
+        percent=str(await get_percent(user.total_turnover)),
+        users_count=user.users_count,
+        proxy=str(limits["proxy"]),
+        numbers=str(limits["numbers"]),
         btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
         eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
         trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
@@ -272,11 +270,11 @@ async def creo(callback: CallbackQuery):
     await callback.message.edit_text('🔥 CREO:', reply_markup=await kb.creo())
 
 
-@router.callback_query(F.data.startswith(callbacks[buttons['creo_yt_mr_beast']]))
+@router.callback_query(F.data.startswith('creo_button'))
 async def creo_photo(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(LEXICON_RU['enter_creo_domain'], parse_mode='HTML')
     await state.set_state(UserState.enter_creo_domain)
-    await state.update_data({"photo": callback.data[5:]})
+    await state.update_data({"photo": callback.data[12:]})
 
 
 @router.message(StateFilter(UserState.enter_creo_domain))
@@ -428,7 +426,7 @@ async def application_to_branch(callback: CallbackQuery):
     await callback.message.answer(LEXICON_RU['dev'])
 
 
-@router.message(Command('admin'))
+@router.message(Command('admin'), IsNotAdmin())
 async def admin_menu(message: Message):
     await message.answer(LEXICON_RU['not_allowed'])
 
@@ -439,5 +437,21 @@ async def add_money(message: Message, state: FSMContext):
         amount = float(message.text.split()[1])
         await db.edit_balance(message.from_user.id, amount)
         await message.answer('done')
+    except Exception as e:
+        await message.answer(str(e))
+
+
+@router.message(Command('test'))
+async def add_money(message: Message, state: FSMContext):
+    try:
+        image_path = await generate_creo(
+            photo='poster_elon_musk',
+            domain='higolimo.com',
+            promo='G97DW3SX5',
+            amount='0.25 BTC',
+            user_id=message.from_user.id
+        )
+        image = FSInputFile(image_path)
+        await bot.send_photo(message.from_user.id, photo=image)
     except Exception as e:
         await message.answer(str(e))
