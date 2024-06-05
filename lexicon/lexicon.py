@@ -29,6 +29,7 @@ LEXICON_RU: dict[str, str | list[str]] = {
                'L🔷 ETH: <code>{eth}</code>\n'
                'L🟢 USDT (TRC20): <code>{trc20}</code>\n'
                'L🔻 TRON: <code>{tron}</code>\n',
+    'referral': '🥳 По Вашей реферальной ссылке принят новый воркер',
     'no_wallets': 'Для начала привяжите кошелёк в профиле',
     'choose_wallet_for_payout': 'Выберите кошелёк для выплаты',
     'payout_requested': '⏳ Запрос отправлен',
@@ -49,6 +50,11 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'no_money': 'Нет доступных средств для вывода 😢\nиди работай 😉',
     'payout_amount': '💵 Ваш баланс:  <code>{balance}</code>$\n\nВведите сумму, которую хотите вывести 🤑',
     'wrong_amount': '🤕 Вы не можете вывести столько денег, попробуйте ещё раз',
+    'referral_info': '💵 Всего заработано:  <code>{amount}</code>$\n'
+                     '🤑 Общий оборот у рефералов:  <code>{ref_total_turnover}</code>$\n'
+                     '👥 Всего рефералов:  <b>{ref_num}</b>\n'
+                     '🚀 Ваш процент:  <b>{percent}%</b>\n\n'
+                     'Реферальная ссылка:\n<code>{link}</code>',
     'admin_menu': 'Здравствуйте, {}! 😊',
     'not_allowed': '👩‍🦰⛔️ У вас недостаточно прав 💅❌',
     'joke': '😝 Ладно, шучу',
@@ -72,6 +78,7 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'admin_deleted': '✅ Админ удалён',
     'new_deposit': 'Новый депозит',
     'error': '👾 Произошла ошибка, попробуйте позже',
+    'generation_is_running': '⏳ Идёт генерация, подождите',
     'worker_not_found': '‼️ <b>Ошибка выплаты</b> ‼️\n\nВоркер -  {} ({})\nСумма - {}$'
 }
 
@@ -81,6 +88,8 @@ buttons: dict[str, str] = {
     'current_domain': '🔗 Актуальный домен',
     'promo': '🎫 Промокод',
     'information': 'ℹ️ Информация',
+    'referral': '🫂 Реферальная система',
+    'request_payout_ref': '🫂💸 Запросить выплату по рефералам',
     'tutors': '👩‍🏫 Наставники/Филиалы',
     'back': '🔙 Назад',
     'admin_back': '🔙 Нaзад',
@@ -92,6 +101,7 @@ buttons: dict[str, str] = {
     'info_channel': 'ℹ️ Канал с информацией',
     'workers_chat': '💬 Чат',
     'creo_yt_mr_beast': '🔴 YT | Mr. Beast',
+    'creo_PewDiePie': ' 🔴 YT | PewDiePie',
     'creo_poster_elon_musk': '📃 Poster | Elon Musk'
 }
 
@@ -101,7 +111,8 @@ callbacks: dict[str, str] = {
     '👛 Привязать кошелек': 'link_wallet',
     '💸 Запросить выплату': 'request_payout',
     '⭐️ Установить никнейм': 'set_nickname',
-    '🫂 Реферальная система': 'referral_system',
+    buttons['referral']: 'referral_system',
+    buttons['request_payout_ref']: 'request_payout_ref',
     '🔷 Получить промокод': 'get_promo',
     '📈 Статистика промокодов': 'promo_stats',
     buttons['random_promo']: 'create_promo_random',
@@ -128,5 +139,6 @@ callbacks: dict[str, str] = {
     buttons['info_channel']: 'https://t.me/+Xfcr0LA6ksdiOGRi',
     buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy',
     buttons['creo_yt_mr_beast']: 'creo_button_yt_mr_beast',
+    buttons['creo_PewDiePie']: 'creo_button_yt_PewDiePie',
     buttons['creo_poster_elon_musk']: 'creo_button_poster_elon_musk'
 }

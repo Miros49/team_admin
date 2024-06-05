@@ -16,6 +16,17 @@ def find_lolz_profile(text: str) -> str:
     return lolz_profile
 
 
+def find_referral_id(message: str) -> str | None:
+    pattern = r"Приглашён пользователем: @\w+ \((\d+)\)"
+
+    match = re.search(pattern, message)
+
+    if match:
+        return match.group(1)
+    else:
+        return None
+
+
 def parse_duration(duration: str) -> timedelta | None:
     match = re.match(r"(\d+)([smhd])", duration)
     if not match:

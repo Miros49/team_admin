@@ -163,7 +163,7 @@ class StartKeyboards:
 class UserKeyboards:
     menu = create_menu_reply_kb(
         [buttons['profile'], buttons['options'], buttons['current_domain'], buttons['promo'],
-         buttons['information']]  # , buttons['tutors']]
+         buttons['information'], buttons['referral']]  # , buttons['tutors']]
     )
 
     def profile_kb(self) -> InlineKeyboardMarkup:
@@ -177,6 +177,13 @@ class UserKeyboards:
             InlineKeyboardButton(text='🫂 Реферальная система', callback_data=callbacks['🫂 Реферальная система'])
         )
         kb.adjust(2, 2, 1, 1)
+
+        return kb.as_markup()
+
+    def request_payout_ref(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(InlineKeyboardButton(text=buttons['request_payout_ref'],
+                                    callback_data=callbacks[buttons['request_payout_ref']]))
 
         return kb.as_markup()
 
@@ -259,9 +266,12 @@ class UserKeyboards:
         kb.add(
             InlineKeyboardButton(text=buttons['creo_yt_mr_beast'],
                                  callback_data=callbacks[buttons['creo_yt_mr_beast']]),
+            InlineKeyboardButton(text=buttons['creo_PewDiePie'],
+                                 callback_data=callbacks[buttons['creo_PewDiePie']]),
             InlineKeyboardButton(text=buttons['creo_poster_elon_musk'],
                                  callback_data=callbacks[buttons['creo_poster_elon_musk']])
         )
+        kb.adjust(2, 1)
 
         return kb.as_markup()
 

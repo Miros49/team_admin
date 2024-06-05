@@ -42,17 +42,28 @@ async def generate_creo(photo: str, domain: str, promo: str, amount: str, user_i
         image_path = 'img/creo/sources/yt_mr_beast.png'
         domain_position = (1015, 330)
         promo_position = (1170, 440)
-        amount_position = (763, 558)
+        amount_position = (761, 558)
         domain_size = 1.5
         promo_size = 1.5
-        amount_size = 2.5
+        amount_size = 1.5
+        domain_thickness = 5
+        promo_thickness = 5
+        amount_thickness = 6
+    elif photo == 'yt_PewDiePie':
+        image_path = 'img/creo/sources/yt_PewDiePie.png'
+        domain_position = (1022, 332)
+        promo_position = (1166, 432)
+        amount_position = (775, 563)
+        domain_size = 1.5
+        promo_size = 1.5
+        amount_size = 1.5
         domain_thickness = 5
         promo_thickness = 5
         amount_thickness = 6
     elif photo == 'poster_elon_musk':
         image_path = 'img/creo/sources/poster_elon_musk.png'
         domain_position = (672, 675)
-        promo_position = (667, 1389)
+        promo_position = (669, 1389)
         amount_position = (650, 777)
         domain_size = 0.88
         promo_size = 1.5

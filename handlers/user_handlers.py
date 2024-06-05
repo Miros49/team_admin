@@ -1,9 +1,12 @@
+import asyncio
+
 from aiogram import Dispatcher, F, Bot, Router
 from aiogram.filters import StateFilter, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.exceptions import TelegramRetryAfter
 
 from config_data import Config, load_config
 from database import DataBase
@@ -202,7 +205,19 @@ async def set_nickname(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data == callbacks['🫂 Реферальная система'])
-async def profile_menu(callback: CallbackQuery, state: FSMContext):
+async def profile_menu(callback: CallbackQuery):
+    user = await db.get_user(callback.from_user.id)
+    await callback.message.edit_text(LEXICON_RU['referral_info'].format(
+        amount=str(user.balance),
+        ref_total_turnover=await db.get_total_turnover_by_referrer(callback.from_user.id),
+        ref_num=user.ref_num,
+        percent='1',
+        link=f'https://t.me/team_admmsbot?start={callback.from_user.id}'
+    ), reply_markup=kb.request_payout_ref(), parse_mode='HTML')
+
+
+@router.callback_query(F.data == callbacks[buttons['request_payout_ref']])  # TODO: доделать
+async def request_payout_ref(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer(LEXICON_RU['dev'])
 
@@ -245,8 +260,6 @@ async def generate_tags(message: Message, state: FSMContext):
     else:
         await message.answer('Произошла ошибка, попробуйте позже\n\n{}'.format(data['message']))
     await state.clear()
-    state_data = await state.get_data()
-    await bot.edit_message_text(LEXICON_RU['enter_tags_prompt'], message.from_user.id, state_data["message_id"])
 
 
 @router.callback_query(F.data == callbacks['👧 Girls'])
@@ -295,6 +308,7 @@ async def creo_promo(message: Message, state: FSMContext):
 
 @router.message(StateFilter(UserState.enter_creo_amount))
 async def generate_creo_handler(message: Message, state: FSMContext):
+    mes = await message.answer(LEXICON_RU['generation_is_running'])
     try:
         data = await state.get_data()
         image_path = await generate_creo(
@@ -305,9 +319,16 @@ async def generate_creo_handler(message: Message, state: FSMContext):
             user_id=message.from_user.id
         )
         image = FSInputFile(image_path)
-        await bot.send_photo(message.from_user.id, photo=image)
+
+        for _ in range(3):
+            try:
+                await bot.send_photo(message.from_user.id, photo=image)
+                break
+            except TelegramRetryAfter:
+                await asyncio.sleep(8)
+        await mes.delete()
     except Exception as e:
-        await message.answer(LEXICON_RU['error'])
+        await mes.edit_text("🤕 Произошла ошибка при генерации изображения.\nПожалуйста, попробуйте позже.")
         print(f"\nОшибка генерации изображения: {str(e)}\n")
     await state.clear()
 
@@ -445,7 +466,7 @@ async def add_money(message: Message, state: FSMContext):
 async def add_money(message: Message, state: FSMContext):
     try:
         image_path = await generate_creo(
-            photo='poster_elon_musk',
+            photo='yt_PewDiePie',
             domain='higolimo.com',
             promo='G97DW3SX5',
             amount='0.25 BTC',

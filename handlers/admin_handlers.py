@@ -2,9 +2,8 @@ import asyncio
 from datetime import datetime
 
 from aiogram import Bot, F, Router
-from aiogram.filters import Command, StateFilter, CommandStart
-from aiogram.handlers import MessageHandler
-from aiogram.types import Message, CallbackQuery, ChatPermissions
+from aiogram.filters import Command, StateFilter
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from config_data import Config, load_config
@@ -13,7 +12,7 @@ from filters import IsAdmin
 from keyboards import AdminKeyboards, UserKeyboards
 from lexicon import LEXICON_RU, callbacks, buttons
 from state import AdminState
-from utils import find_lolz_profile, parse_duration
+from utils import find_lolz_profile, find_referral_id, parse_duration
 
 config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
@@ -32,16 +31,21 @@ async def create_ads(callback: CallbackQuery):
     await callback.answer()
     user_id = int(callback.data.split("_")[2])
     lolz = find_lolz_profile(callback.message.text)
+    referral_id = find_referral_id(callback.message.text)
 
     if await db.user_exists(user_id):
         return await callback.message.edit_text(callback.message.text + LEXICON_RU['already_accepted'],
                                                 parse_mode='HTML')
 
     if callback.data.split("_")[1] == "accept":
-        await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
         try:
-            await db.set_user(user_id=user_id, username=callback.from_user.username, lolz_profile=lolz)
+            await db.set_user(user_id=user_id, username=callback.from_user.username,
+                              lolz_profile=lolz, ref_id=referral_id)
+            await bot.send_message(user_id, LEXICON_RU['accept user'], reply_markup=UserKeyboards.menu)
             await callback.message.edit_text(callback.message.text + LEXICON_RU['accepted'], parse_mode='HTML')
+            if referral_id:
+                await db.add_ref(referral_id)
+                await bot.send_message(referral_id, LEXICON_RU['referral'])
         except Exception as e:
             print(str(e))
     else:
@@ -50,7 +54,7 @@ async def create_ads(callback: CallbackQuery):
                                          parse_mode='HTML')  # TODO: если кто-то отклонит, остальные не увидят
 
 
-@router.callback_query(F.data == callbacks[buttons['admin_back']])  # TODO: пофиксь
+@router.callback_query(F.data == callbacks[buttons['admin_back']])
 async def back_button_pressed(callback: CallbackQuery, state: FSMContext):
     markup = kb.super_menu() if callback.from_user.id in config.tg_bot.admin_ids else kb.menu()
     await callback.message.edit_text(LEXICON_RU['admin_menu'].format(callback.from_user.first_name),
@@ -94,6 +98,7 @@ async def admin_launch_mailing(message: Message, state: FSMContext):
     await state.clear()
     for user_id in await db.get_all_users():
         await bot.send_message(chat_id=user_id, text=message.text)
+        await asyncio.sleep(0.033)
 
 
 @router.callback_query(F.data == callbacks['➕ Добавить админа'])
