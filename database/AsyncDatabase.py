@@ -37,12 +37,19 @@ class User(Base):
     ref_num = Column(SmallInteger, default=0)
 
 
+class User(Base):
+    __tablename__ = 'promocodes'
+    id = Column(BigInteger, primary_key=True, unique=True)
+    num = Column(SmallInteger, nullable=False, default=0)
+    promocodes = Column()
+
+
 class Statistics(Base):
     __tablename__ = 'statistics'
     id = Column(BigInteger, primary_key=True)
     balance = Column(Double, default=0.00)
     cash_flow = Column(Double, default=0.00)
-    percent = Column(Integer, default=65)
+    percent = Column(Integer, default=50)
     registrations_number = Column(Integer, default=0)
 
 
@@ -152,7 +159,7 @@ class DataBase:
         async with self.async_session() as session:
             async with session.begin():
                 user = User(id=user_id, username=username, lolz_profile=lolz_profile, balance=0.00,
-                            your_ref=int(ref_id))
+                            your_ref=int(ref_id) if ref_id else 0)
                 session.add(user)
                 await session.commit()
                 return user.id

@@ -204,15 +204,15 @@ async def set_nickname(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.callback_query(F.data == callbacks['🫂 Реферальная система'])
+@router.callback_query(F.data == callbacks[buttons['referral']])
 async def profile_menu(callback: CallbackQuery):
     user = await db.get_user(callback.from_user.id)
     await callback.message.edit_text(LEXICON_RU['referral_info'].format(
-        amount=str(user.balance),
+        amount=str(user.total_turnover),
         ref_total_turnover=await db.get_total_turnover_by_referrer(callback.from_user.id),
-        ref_num=user.ref_num,
+        ref_num=str(user.ref_num),
         percent='1',
-        link=f'https://t.me/team_admmsbot?start={callback.from_user.id}'
+        link=f'https://t.me/RenegadeTeamBot?start={callback.from_user.id}'
     ), reply_markup=kb.request_payout_ref(), parse_mode='HTML')
 
 

@@ -163,7 +163,7 @@ class StartKeyboards:
 class UserKeyboards:
     menu = create_menu_reply_kb(
         [buttons['profile'], buttons['options'], buttons['current_domain'], buttons['promo'],
-         buttons['information'], buttons['referral']]  # , buttons['tutors']]
+         buttons['information']]  # , buttons['tutors']]
     )
 
     def profile_kb(self) -> InlineKeyboardMarkup:
