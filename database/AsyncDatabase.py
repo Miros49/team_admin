@@ -1,4 +1,5 @@
 from sqlalchemy import Integer, Double, JSON, BINARY, DateTime
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
@@ -37,11 +38,11 @@ class User(Base):
     ref_num = Column(SmallInteger, default=0)
 
 
-class User(Base):
+class Promocodes(Base):
     __tablename__ = 'promocodes'
     id = Column(BigInteger, primary_key=True, unique=True)
     num = Column(SmallInteger, nullable=False, default=0)
-    promocodes = Column()
+    promocodes = Column(ARRAY(String))
 
 
 class Statistics(Base):

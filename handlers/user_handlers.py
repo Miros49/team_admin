@@ -143,7 +143,7 @@ async def choose_wallet_for_payout(callback: CallbackQuery):
         await db.set_wallet(callback.from_user.id)
     if not user.balance:
         await callback.message.answer(LEXICON_RU['no_money'])
-        if callback.from_user.id in await db.get_all_users():
+        if callback.from_user.id in config.tg_bot.admin_ids:
             await callback.message.answer('Поскольку Вы являетесь администратором, в целях тестирования Вам доступна'
                                           'команда <code>/add n</code> для зачисления на баланс n денег',
                                           parse_mode='HTML')
@@ -186,6 +186,7 @@ async def request_payout(message: Message, state: FSMContext):
             await message.answer(LEXICON_RU['wrong_amount'])
     except ValueError:
         await message.answer(LEXICON_RU['wrong_format'])
+    await state.clear()
 
 
 @router.callback_query(F.data == callbacks['⭐️ Установить никнейм'])
