@@ -1,13 +1,12 @@
 import asyncio
 import logging
 
-
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config_data import Config, load_config
 from database import DataBase
-from handlers import start_handlers, user_handlers, admin_handlers, payments_handlers
+from handlers import start_handlers, user_handlers, admin_handlers, payments_handlers, group_handlers
 
 storage = MemoryStorage()
 
@@ -27,6 +26,7 @@ dp.include_router(start_handlers.router)
 dp.include_router(user_handlers.router)
 dp.include_router(admin_handlers.router)
 dp.include_router(payments_handlers.router)
+dp.include_router(group_handlers.router)
 
 
 # Функция конфигурирования и запуска бота

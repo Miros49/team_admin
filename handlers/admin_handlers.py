@@ -193,3 +193,14 @@ async def ban_user(message: Message, state: FSMContext):
     else:
         await message.answer(LEXICON_RU['wrong_format'])
     await state.clear()
+
+
+@router.message(Command('add'))
+async def add_money(message: Message, state: FSMContext):
+    if message.from_user.id in config.tg_bot.admin_ids:
+        try:
+            amount = float(message.text.split()[1])
+            await db.edit_balance(message.from_user.id, amount)
+            await message.answer('done')
+        except Exception as e:
+            await message.answer(str(e))

@@ -270,6 +270,36 @@ class DataBase:
                 total_turnover = result.scalar()
                 return total_turnover if total_turnover is not None else 0.00
 
+    async def set_user_promocodes(self, user_id: int | str):
+        async with self.async_session() as session:
+            async with session.begin():
+                user = Promocodes(id=int(user_id))
+                session.add(user)
+                await session.commit()
+                return user.id
+
+    async def get_promocodes(self, user_id: int | str):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Promocodes).filter(Promocodes.id == int(user_id))
+                result = await session.execute(query)
+                user = result.scalars().first()
+                return user
+
+    async def add_promocode(self, user_id: int | str, promocode: str):
+        async with self.async_session() as session:
+            async with session.begin():
+                query = select(Promocodes).filter(Promocodes.id == int(user_id))
+                result = await session.execute(query)
+                user = result.scalars().first()
+                if not user:
+                    new_user = Promocodes(id=int(user_id), num=1, promocode=[promocode])
+                    session.add(new_user)
+                elif user.num < 3:
+                    user.promocodes.append(promocode)
+                    user.num += 1
+                await session.commit()
+
     async def set_wallet(self, user_id: int):
         async with self.async_session() as session:
             async with session.begin():

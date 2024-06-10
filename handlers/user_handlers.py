@@ -40,7 +40,13 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
         if callback.message.text == LEXICON_RU['select_generator']:
             await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
         elif callback.message.text == LEXICON_RU['promo_type']:
-            await callback.message.edit_text(LEXICON_RU['your_promo'], reply_markup=kb.promo)
+            text = LEXICON_RU['your_promo']
+            user = await db.get_promocodes(callback.from_user.id)
+            if not user.promocodes:
+                text += 'У Вас ещё нет промокодов'
+            elif user.promocodes:
+                text += '<code>' + '</code>\n'.join(user.promocodes) + '</code>'
+            await callback.message.edit_text(text, reply_markup=kb.promo)
         elif callback.message.text == LEXICON_RU['promo_ticker']:
             await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
         else:
@@ -341,25 +347,36 @@ async def domain_menu(message: Message):
 
 @router.message(F.text == buttons['promo'])
 async def promo_menu(message: Message):
-    await message.answer(LEXICON_RU['your_promo'], reply_markup=kb.promo)
+    text = LEXICON_RU['your_promo']
+    user = await db.get_promocodes(message.from_user.id)
+    if not user or not user.promocodes:
+        if not user:
+            await db.set_user_promocodes(message.from_user.id)
+        text += 'У Вас ещё нет промокодов'
+    elif user.promocodes:
+        text += '<code>' + '</code>\n'.join(user.promocodes) + '</code>'
+
+    await message.answer(text, reply_markup=kb.promo, parse_mode='HTML')
 
 
 @router.callback_query(F.data == callbacks['🔷 Получить промокод'])
 async def handler_create_promo(callback: CallbackQuery):
-    await callback.answer()
     await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
 
 
 @router.callback_query(F.data.startswith('create_promo'))
 async def create_promo_first(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
+    user = await db.get_promocodes(callback.from_user.id)
 
-    if callback.data.split('_')[-1] == 'custom':
-        await state.update_data({"custom": True})
+    if user.num < 3:
+        if callback.data.split('_')[-1] == 'custom':
+            await state.update_data({"custom": True})
+        else:
+            await state.update_data({"custom": False})
+
+        await callback.message.edit_text(LEXICON_RU['promo_ticker'], reply_markup=kb.tickers)
     else:
-        await state.update_data({"custom": False})
-
-    await callback.message.edit_text(LEXICON_RU['promo_ticker'], reply_markup=kb.tickers)
+        await callback.message.edit_text()
 
 
 @router.callback_query(F.data.startswith('ticker_'))
@@ -451,16 +468,6 @@ async def application_to_branch(callback: CallbackQuery):
 @router.message(Command('admin'), IsNotAdmin())
 async def admin_menu(message: Message):
     await message.answer(LEXICON_RU['not_allowed'])
-
-
-@router.message(Command('add'))
-async def add_money(message: Message, state: FSMContext):
-    try:
-        amount = float(message.text.split()[1])
-        await db.edit_balance(message.from_user.id, amount)
-        await message.answer('done')
-    except Exception as e:
-        await message.answer(str(e))
 
 
 @router.message(Command('test'))
