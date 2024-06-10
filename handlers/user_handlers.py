@@ -40,19 +40,21 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
         if callback.message.text == LEXICON_RU['select_generator']:
             await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
         elif callback.message.text == LEXICON_RU['promo_type']:
-            text = LEXICON_RU['your_promo']
             user = await db.get_promocodes(callback.from_user.id)
-            if not user.promocodes:
+            text = LEXICON_RU['your_promo']
+            if not user or not user.promocodes:
+                if not user:
+                    await db.set_user_promocodes(callback.from_user.id)
                 text += 'У Вас ещё нет промокодов'
             elif user.promocodes:
-                text += '<code>' + '</code>\n'.join(user.promocodes) + '</code>'
-            await callback.message.edit_text(text, reply_markup=kb.promo)
+                text += '<code>' + '</code>\n'.join(user.promocodes.split(',')) + '</code>'
+
+            await callback.message.answer(text, reply_markup=kb.promo, parse_mode='HTML')
         elif callback.message.text == LEXICON_RU['promo_ticker']:
             await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
         else:
             user = await db.get_user(callback.from_user.id)
             wallets = await db.get_wallets(callback.from_user.id)
-            limits = await get_limits(user.total_turnover)
             await callback.message.edit_text(LEXICON_RU['profile'].format(
                 user_id=callback.from_user.id,
                 nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
@@ -63,8 +65,6 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
                 total_turnover=str(user.total_turnover),
                 percent=str(await get_percent(user.total_turnover)),
                 users_count=user.users_count,
-                proxy=str(limits["proxy"]),
-                numbers=str(limits["numbers"]),
                 btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
                 eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
                 trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
@@ -81,7 +81,6 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
 async def profile(message: Message):
     user = await db.get_user(message.from_user.id)
     wallets = await db.get_wallets(message.from_user.id)
-    limits = await get_limits(user.total_turnover)
     await message.answer(LEXICON_RU['profile'].format(
         user_id=message.from_user.id,
         nickname=f"<code>{user.nickname}</code>" if user and user.nickname else 'Нет',
@@ -92,8 +91,6 @@ async def profile(message: Message):
         total_turnover=str(user.total_turnover),
         percent=str(await get_percent(user.total_turnover)),
         users_count=user.users_count,
-        proxy=str(limits["proxy"]),
-        numbers=str(limits["numbers"]),
         btc=f"<code>{wallets.btc}</code>" if wallets and wallets.btc else 'Не привязан',
         eth=f"<code>{wallets.eth}</code>" if wallets and wallets.eth else 'Не привязан',
         trc20=f"<code>{wallets.trc20}</code>" if wallets and wallets.trc20 else 'Не привязан',
@@ -231,25 +228,25 @@ async def request_payout_ref(callback: CallbackQuery, state: FSMContext):
 
 @router.message(F.text == buttons['options'])
 async def options_menu(message: Message):
-    await message.answer(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+    # await message.answer(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
+    await message.answer('Теперь кнопки в главном меню выглядят по-другому 🤗', reply_markup=kb.menu)
 
 
-@router.callback_query(F.data == callbacks['🔗 Получить прокси'])
-async def get_proxy(callback: CallbackQuery):
-    await callback.message.answer(await generate_proxy(), parse_mode='HTML')
-    await callback.answer()
+# @router.callback_query(F.data == callbacks['🔗 Получить прокси'])
+# async def get_proxy(callback: CallbackQuery):
+#     await callback.message.answer(await generate_proxy(), parse_mode='HTML')
+#     await callback.answer()
+#
+#
+# @router.callback_query(F.data == callbacks['📱 Получить номер'])
+# async def get_number(callback: CallbackQuery):
+#     await callback.answer()
+#     await callback.message.answer(await generate_phone_number(), parse_mode='HTML')
 
 
-@router.callback_query(F.data == callbacks['📱 Получить номер'])
-async def get_number(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.answer(await generate_phone_number(), parse_mode='HTML')
-
-
-@router.callback_query(F.data == callbacks['📟 Генераторы'])
-async def generators(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
+@router.message(F.text == buttons['generators'])
+async def generators(message: Message):
+    await message.answer(LEXICON_RU['select_generator'], reply_markup=kb.generators())
 
 
 @router.callback_query(F.data == callbacks[buttons['tags']])
@@ -340,6 +337,11 @@ async def generate_creo_handler(message: Message, state: FSMContext):
     await state.clear()
 
 
+@router.message(F.text == buttons['contacts'])
+async def contacts(message: Message):
+    await message.answer(LEXICON_RU['contacts'], parse_mode='HTML')
+
+
 @router.message(F.text == buttons['current_domain'])
 async def domain_menu(message: Message):
     await message.answer(LEXICON_RU['current_domain'], parse_mode='HTML')
@@ -354,7 +356,7 @@ async def promo_menu(message: Message):
             await db.set_user_promocodes(message.from_user.id)
         text += 'У Вас ещё нет промокодов'
     elif user.promocodes:
-        text += '<code>' + '</code>\n'.join(user.promocodes) + '</code>'
+        text += '▪️<code>' + '</code>\n▪️<code>'.join(user.promocodes.split(',')) + '</code>'
 
     await message.answer(text, reply_markup=kb.promo, parse_mode='HTML')
 
@@ -366,17 +368,13 @@ async def handler_create_promo(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith('create_promo'))
 async def create_promo_first(callback: CallbackQuery, state: FSMContext):
-    user = await db.get_promocodes(callback.from_user.id)
 
-    if user.num < 3:
-        if callback.data.split('_')[-1] == 'custom':
-            await state.update_data({"custom": True})
-        else:
-            await state.update_data({"custom": False})
-
-        await callback.message.edit_text(LEXICON_RU['promo_ticker'], reply_markup=kb.tickers)
+    if callback.data.split('_')[-1] == 'custom':
+        await state.update_data({"custom": True})
     else:
-        await callback.message.edit_text()
+        await state.update_data({"custom": False})
+
+    await callback.message.edit_text(LEXICON_RU['promo_ticker'], reply_markup=kb.tickers)
 
 
 @router.callback_query(F.data.startswith('ticker_'))
@@ -401,7 +399,8 @@ async def create_default_promo(message: Message, state: FSMContext):
     response = await create_promo(data["ticker"], float(message.text), message.from_user.id)
     if response["success"]:
         code = response["codes"][0]
-        await message.answer(code)
+        await message.answer(f"<code>{code}</code>", parse_mode='HTML')
+        await db.add_promocode(user_id=message.from_user.id, promocode=str(code))
     else:
         await message.answer(response["message"])
     await state.clear()
@@ -414,7 +413,8 @@ async def create_promo_custom(message: Message, state: FSMContext):
                                   custom_code=message.text)
     if response["success"]:
         code = response["codes"][0]
-        await message.answer('Success, ' + str(code))
+        await message.answer(f"Промокод создан: <code>{code}</code>", parse_mode='HTML')
+        await db.add_promocode(message.from_user.id, str(code))
     else:
         await message.answer(response["message"])
     await state.clear()

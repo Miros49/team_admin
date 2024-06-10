@@ -1,5 +1,4 @@
 from sqlalchemy import Integer, Double, JSON, BINARY, DateTime
-from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
@@ -42,7 +41,7 @@ class Promocodes(Base):
     __tablename__ = 'promocodes'
     id = Column(BigInteger, primary_key=True, unique=True)
     num = Column(SmallInteger, nullable=False, default=0)
-    promocodes = Column(ARRAY(String))
+    promocodes = Column(String)
 
 
 class Statistics(Base):
@@ -244,7 +243,10 @@ class DataBase:
     async def ban_user(self, user_id: int | None = None, username: str | None = None, ban: bool = True):
         async with self.async_session() as session:
             async with session.begin():
-                query = select(User).filter(User.id == user_id)
+                if user_id:
+                    query = select(User).filter(User.id == user_id)
+                elif username:
+                    query = select(User).filter(User.username == username)
                 result = await session.execute(query)
                 user = result.scalars().first()
                 if ban:
@@ -292,12 +294,17 @@ class DataBase:
                 query = select(Promocodes).filter(Promocodes.id == int(user_id))
                 result = await session.execute(query)
                 user = result.scalars().first()
+
                 if not user:
-                    new_user = Promocodes(id=int(user_id), num=1, promocode=[promocode])
+                    new_user = Promocodes(id=int(user_id), num=1, promocodes=promocode)
                     session.add(new_user)
-                elif user.num < 3:
-                    user.promocodes.append(promocode)
-                    user.num += 1
+                else:
+                    if not user.promocodes:
+                        user.promocodes = promocode
+                    else:
+                        user.promocodes = f"{user.promocodes},{promocode}"
+                        user.num += 1
+
                 await session.commit()
 
     async def set_wallet(self, user_id: int):

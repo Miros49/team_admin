@@ -162,8 +162,9 @@ class StartKeyboards:
 
 class UserKeyboards:
     menu = create_menu_reply_kb(
-        [buttons['profile'], buttons['options'], buttons['current_domain'], buttons['promo'],
-         buttons['information']]  # , buttons['tutors']]
+        [buttons['profile'], buttons['promo'],
+         buttons['current_domain'], buttons['generators'],
+         buttons['information'], buttons['contacts']]  # , buttons['tutors']]
     )
 
     def profile_kb(self) -> InlineKeyboardMarkup:
@@ -244,8 +245,7 @@ class UserKeyboards:
             InlineKeyboardButton(text=buttons['tags'], callback_data=callbacks[buttons['tags']]),
             InlineKeyboardButton(text='👧 Girls', callback_data=callbacks['👧 Girls']),
             InlineKeyboardButton(text='👻 NFT', callback_data=callbacks['👻 NFT']),
-            InlineKeyboardButton(text=buttons['creo'], callback_data=callbacks[buttons['creo']]),
-            back_button
+            InlineKeyboardButton(text=buttons['creo'], callback_data=callbacks[buttons['creo']])
         )
         kb.adjust(1, 2, 1, 1)
 
