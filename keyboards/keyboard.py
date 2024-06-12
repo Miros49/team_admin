@@ -170,14 +170,14 @@ class UserKeyboards:
     def profile_kb(self) -> InlineKeyboardMarkup:
         kb = InlineKeyboardBuilder()
         kb.row(
-            InlineKeyboardButton(text='🆙 Повысить лимиты', callback_data=callbacks['🆙 Повысить лимиты']),
-            InlineKeyboardButton(text='📝 Изменить информацию', callback_data=callbacks['📝 Изменить информацию']),
-            InlineKeyboardButton(text='👛 Привязать кошелек', callback_data=callbacks['👛 Привязать кошелек']),
+            # InlineKeyboardButton(text='🆙 Повысить лимиты', callback_data=callbacks['🆙 Повысить лимиты']),
+            # InlineKeyboardButton(text='📝 Изменить информацию', callback_data=callbacks['📝 Изменить информацию']),
+            InlineKeyboardButton(text=buttons['link_wallet'], callback_data=callbacks[buttons['link_wallet']]),
             InlineKeyboardButton(text='💸 Запросить выплату', callback_data=callbacks['💸 Запросить выплату']),
             InlineKeyboardButton(text='⭐️ Установить никнейм', callback_data=callbacks['⭐️ Установить никнейм']),
             InlineKeyboardButton(text='🫂 Реферальная система', callback_data=callbacks['🫂 Реферальная система'])
         )
-        kb.adjust(2, 2, 1, 1)
+        kb.adjust(1, 2, 1)
 
         return kb.as_markup()
 
@@ -227,10 +227,10 @@ class UserKeyboards:
     })
 
     tickers = create_inline_kb_dict(2, {
-        'ticker_btc': 'BTC',
-        'ticker_eth': 'ETH',
-        'ticker_trc20': 'TRC20',
-        'ticker_trx': 'TRX',
+        'ticker_btc': '🟠 BTC',
+        'ticker_eth': '🔷 ETH',
+        'ticker_usdt': '🟢 TRC20',
+        'ticker_trx': '🔻 TRX',
         callbacks[buttons['back']]: buttons['back']
     })
 
@@ -269,9 +269,10 @@ class UserKeyboards:
             InlineKeyboardButton(text=buttons['creo_PewDiePie'],
                                  callback_data=callbacks[buttons['creo_PewDiePie']]),
             InlineKeyboardButton(text=buttons['creo_poster_elon_musk'],
-                                 callback_data=callbacks[buttons['creo_poster_elon_musk']])
+                                 callback_data=callbacks[buttons['creo_poster_elon_musk']]),
+            back_button
         )
-        kb.adjust(2, 1)
+        kb.adjust(2, 1, 1)
 
         return kb.as_markup()
 

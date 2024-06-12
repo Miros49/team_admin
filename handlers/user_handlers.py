@@ -40,17 +40,30 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     if not current_state or current_state == UserState.enter_nickname:
         if callback.message.text == LEXICON_RU['select_generator']:
             await callback.message.edit_text(LEXICON_RU['tools_for_work'], reply_markup=kb.options)
-        elif callback.message.text == LEXICON_RU['promo_type']:
-            user = await db.get_promocodes(callback.from_user.id)
+        elif callback.message.text == LEXICON_RU['enter_promo']:
             text = LEXICON_RU['your_promo']
+            user = await db.get_promocodes(callback.from_user.id)
             if not user or not user.promocodes:
                 if not user:
                     await db.set_user_promocodes(callback.from_user.id)
                 text += 'У Вас ещё нет промокодов'
             elif user.promocodes:
-                text += '<code>' + '</code>\n'.join(user.promocodes.split(',')) + '</code>'
+                text += '▪️<code>' + '</code>\n▪️<code>'.join(user.promocodes.split(',')) + '</code>'
 
-            await callback.message.answer(text, reply_markup=kb.promo, parse_mode='HTML')
+            await callback.message.edit_text(text, reply_markup=kb.promo, parse_mode='HTML')
+        elif callback.message.text == '🔥 CREO:':
+            await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
+        elif callback.message.text == LEXICON_RU['promo_type']:
+            text = LEXICON_RU['your_promo']
+            user = await db.get_promocodes(callback.from_user.id)
+            if not user or not user.promocodes:
+                if not user:
+                    await db.set_user_promocodes(callback.from_user.id)
+                text += 'У Вас ещё нет промокодов'
+            elif user.promocodes:
+                text += '▪️<code>' + '</code>\n▪️<code>'.join(user.promocodes.split(',')) + '</code>'
+
+            await callback.message.edit_text(text, reply_markup=kb.promo, parse_mode='HTML')
         elif callback.message.text == LEXICON_RU['promo_ticker']:
             await callback.message.edit_text(LEXICON_RU['promo_type'], reply_markup=kb.create_promo)
         else:
@@ -115,7 +128,7 @@ async def profile_menu(callback: CallbackQuery):
     await callback.message.answer(LEXICON_RU['dev'])
 
 
-@router.callback_query(F.data == callbacks['👛 Привязать кошелек'])
+@router.callback_query(F.data == callbacks[buttons['link_wallet']])
 async def profile_menu(callback: CallbackQuery):
     await callback.message.edit_text(LEXICON_RU['choose_wallet'], reply_markup=kb.wallets())
 
@@ -288,7 +301,7 @@ async def generate_tags(message: Message, state: FSMContext):
 @router.callback_query(F.data == callbacks['👧 Girls'])
 async def girls(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(LEXICON_RU['dev'] + '\nНужны исходники')
+    await callback.message.edit_text(LEXICON_RU['dev'])
 
 
 @router.callback_query(F.data == callbacks['👻 NFT'])
@@ -401,6 +414,7 @@ async def ticker(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await state.set_state(UserState.create_promo_amount)
     await state.update_data({"custom": data["custom"], "ticker": callback.data.split('_')[1].upper()})
+    print(callback.data.split('_')[1].upper())
 
 
 @router.message(StateFilter(UserState.create_promo_amount))
@@ -453,18 +467,21 @@ async def check_promo(message: Message, state: FSMContext):
     if response["success"]:
         for key, value in response.items():
             if key == "info":
-                text += "Сумма: {}\n".format(value["amount"])
-                text += "Тикер: {}\n".format(value["ticker"])
-                text += "Общая сумма депозитов: {}\n".format(value["deposit_sum"])
-                text += "Общее число регистраций: {}\n".format(value["users_count"])
+                text = LEXICON_RU['promo_info'].format(
+                    promo=message.text,
+                    amount=value["amount"],
+                    ticker=value["ticker"],
+                    deposit_sum=value["deposit_sum"],
+                    users_count=value["users_count"]
+                )
             elif key != "message" and key != "success":
                 text += "{}: {}\n".format(key.capitalize(), value)
     else:
-        text = "Error: {response['message']}"
+        text = f"😥 Произошла ошибка: {response['message']}"
 
-    await message.answer(text)
+    await message.answer(text, parse_mode='HTML')
     data = await state.get_data()
-    await bot.edit_message_text(text='Введите промокод', chat_id=message.from_user.id, message_id=data["mes_id"])
+    await bot.edit_message_text(text=LEXICON_RU['enter_promo'], chat_id=message.from_user.id, message_id=data["mes_id"])
     await state.clear()
 
 

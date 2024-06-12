@@ -65,7 +65,7 @@ async def set_link(message: Message, state: FSMContext):
     profile_info['work_time'] = message.text
     await message.answer(LEXICON_RU['create_profile'][3])
     text = LEXICON_RU['profile to admin'].format(
-        username=message.from_user.username,
+        username=f'@{message.from_user.username}' if message.from_user.username else 'без ника',
         user_id=message.from_user.id,
         lolz_profile=profile_info['lolz_profile'],
         work_exp=profile_info['work_exp'],

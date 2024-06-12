@@ -33,7 +33,7 @@ dp.include_router(group_handlers.router)
 async def main():
     await db.create_tables()
 
-    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook(drop_pending_updates=False)
     # await bot.set_my_commands(commands=[
     #     BotCommand(
     #         command='start',
