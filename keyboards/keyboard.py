@@ -322,3 +322,15 @@ class AdminKeyboards:
         kb.adjust(2)
         kb.row(admin_back_button)
         return kb.as_markup()
+
+
+class PaymentsKeyboard:
+    async def payment(self) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardBuilder()
+        kb.row(
+            InlineKeyboardButton(
+                text=buttons['payment_accepted'],
+                callback_data=callbacks[buttons['payment_accepted']])
+        )
+
+        return kb.as_markup()

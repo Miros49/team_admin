@@ -12,7 +12,7 @@ from filters import IsAdmin
 from keyboards import AdminKeyboards, UserKeyboards
 from lexicon import LEXICON_RU, callbacks, buttons
 from state import AdminState
-from utils import find_lolz_profile, find_referral_id, parse_duration
+from utils import find_lolz_profile, find_referral_id, parse_payout_info
 
 config: Config = load_config('.env')
 DATABASE_URL = f"postgresql+asyncpg://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.database}"
@@ -195,8 +195,26 @@ async def ban_user(message: Message, state: FSMContext):
     await state.clear()
 
 
+@router.callback_query(F.data == callbacks[buttons['payment_accepted']])
+async def payment_accepted(callback: CallbackQuery):
+    data = await parse_payout_info(callback.message.text)
+    if data['success']:
+        text = LEXICON_RU['payout_info'].format(
+            wallet_type=data['wallet_type'],
+            wallet=data['wallet'],
+            amount=data['amount'],
+            username=data['username'],
+            tg_id=data['tg_id']
+        )
+    else:
+        text = callback.message.text
+    text += f'\n\n<b>Ответственный:</b> @{callback.from_user.username}'
+
+    await callback.message.edit_text(text, parse_mode='HTML')
+
+
 @router.message(Command('add'))
-async def add_money(message: Message, state: FSMContext):
+async def add_money(message: Message):
     if message.from_user.id in config.tg_bot.admin_ids:
         try:
             amount = float(message.text.split()[1])

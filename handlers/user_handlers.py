@@ -11,7 +11,7 @@ from aiogram.exceptions import TelegramRetryAfter
 from config_data import Config, load_config
 from database import DataBase
 from filters import IsUser, PrivateChat, IsNotBanned, IsNotAdmin
-from keyboards import UserKeyboards
+from keyboards import UserKeyboards, PaymentsKeyboard
 from lexicon import *
 from state import UserState
 from utils import *
@@ -28,6 +28,7 @@ storage = MemoryStorage()
 bot: Bot = Bot(token=config.tg_bot.token)
 dp: Dispatcher = Dispatcher(storage=storage)
 kb = UserKeyboards()
+payment_kb = PaymentsKeyboard()
 
 router.message.filter(PrivateChat(), IsUser(), IsNotBanned())
 router.callback_query(PrivateChat(), IsUser(), IsNotBanned())
@@ -74,6 +75,10 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(LEXICON_RU['select_generator'], reply_markup=kb.generators())
     elif current_state == UserState.enter_promo:
         await callback.message.edit_text(LEXICON_RU['your_promo'], reply_markup=kb.promo)
+    elif current_state == UserState.enter_payout_amount:
+        linked_wallets = await db.get_linked_wallets(callback.from_user.id)
+        await callback.message.edit_text(LEXICON_RU['choose_wallet_for_payout'],
+                                         reply_markup=kb.walets_for_payout(linked_wallets))
     await state.clear()
 
 
@@ -162,17 +167,20 @@ async def choose_wallet_for_payout(callback: CallbackQuery):
 async def enter_payout_amount(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     user = await db.get_user(callback.from_user.id)
-    await callback.message.edit_text(LEXICON_RU['payout_amount'].format(balance=str(user.balance)), parse_mode='HTML')
+    mes = await callback.message.edit_text(
+        LEXICON_RU['payout_amount'].format(balance=str(user.balance)),
+        reply_markup=kb.back(),
+        parse_mode='HTML')
     await state.set_state(UserState.enter_payout_amount)
-    await state.update_data({"wallet_type": callback.data.split('_')[1]})
+    await state.update_data({"wallet_type": callback.data.split('_')[1], "message": mes, "new_mes": None})
 
 
 @router.message(StateFilter(UserState.enter_payout_amount))
 async def request_payout(message: Message, state: FSMContext):
     try:
-        amount = float(message.text)
         data = await state.get_data()
         user = await db.get_user(message.from_user.id)
+        amount = float(message.text)
         if 0 < amount <= user.balance:
             wallet_type = data['wallet_type']
             wallet = await db.get_linked_wallets(message.from_user.id)
@@ -182,14 +190,25 @@ async def request_payout(message: Message, state: FSMContext):
                 amount=amount,
                 username=message.from_user.username,
                 tg_id=message.from_user.id
-            ))
+            ), reply_markup=await payment_kb.payment(), parse_mode='HTML')
             await message.answer(LEXICON_RU['payout_requested'])
             await db.edit_balance(message.from_user.id, -amount)
+            await state.clear()
         else:
-            await message.answer(LEXICON_RU['wrong_amount'])
+            new_mes = await message.answer(LEXICON_RU['wrong_amount'], reply_markup=kb.back())
+            mes = data['message'] if not data['new_mes'] else data['new_mes']
+            user = await db.get_user(message.from_user.id)
+
+            await mes.edit_text(LEXICON_RU['payout_amount'].format(balance=str(user.balance)), parse_mode='HTML')
+            await state.update_data({"new_mes": new_mes})
     except ValueError:
-        await message.answer(LEXICON_RU['wrong_format'])
-    await state.clear()
+        data = await state.get_data()
+        new_mes = await message.answer(LEXICON_RU['wrong_amount'], reply_markup=kb.back())
+        mes = data['message'] if not data['new_mes'] else data['new_mes']
+        user = await db.get_user(message.from_user.id)
+
+        await mes.edit_text(LEXICON_RU['payout_amount'].format(balance=str(user.balance)), parse_mode='HTML')
+        await state.update_data({"new_mes": new_mes})
 
 
 @router.callback_query(F.data == callbacks['⭐️ Установить никнейм'])
@@ -368,7 +387,6 @@ async def handler_create_promo(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith('create_promo'))
 async def create_promo_first(callback: CallbackQuery, state: FSMContext):
-
     if callback.data.split('_')[-1] == 'custom':
         await state.update_data({"custom": True})
     else:
@@ -468,19 +486,3 @@ async def application_to_branch(callback: CallbackQuery):
 @router.message(Command('admin'), IsNotAdmin())
 async def admin_menu(message: Message):
     await message.answer(LEXICON_RU['not_allowed'])
-
-
-@router.message(Command('test'))
-async def add_money(message: Message, state: FSMContext):
-    try:
-        image_path = await generate_creo(
-            photo='yt_PewDiePie',
-            domain='higolimo.com',
-            promo='G97DW3SX5',
-            amount='0.25 BTC',
-            user_id=message.from_user.id
-        )
-        image = FSInputFile(image_path)
-        await bot.send_photo(message.from_user.id, photo=image)
-    except Exception as e:
-        await message.answer(str(e))

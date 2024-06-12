@@ -65,11 +65,11 @@ async def set_link(message: Message, state: FSMContext):
     profile_info['work_time'] = message.text
     await message.answer(LEXICON_RU['create_profile'][3])
     text = LEXICON_RU['profile to admin'].format(
-                    username=message.from_user.username,
-                    user_id=message.from_user.id,
-                    lolz_profile=profile_info['lolz_profile'],
-                    work_exp=profile_info['work_exp'],
-                    work_time=profile_info['work_time']
+        username=message.from_user.username,
+        user_id=message.from_user.id,
+        lolz_profile=profile_info['lolz_profile'],
+        work_exp=profile_info['work_exp'],
+        work_time=profile_info['work_time']
     )
     if data['referral_id']:
         user = await db.get_user(int(data["referral_id"]))

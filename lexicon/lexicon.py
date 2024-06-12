@@ -30,10 +30,11 @@ LEXICON_RU: dict[str, str | list[str]] = {
     'no_wallets': 'Для начала привяжите кошелёк в профиле',
     'choose_wallet_for_payout': 'Выберите кошелёк для выплаты',
     'payout_requested': '⏳ Запрос отправлен',
-    'payout_info': '💸 Запрос выплаты:\n\n'
-                   '{wallet_type}: {wallet}\n'
-                   'Сумма: {amount}\n'
-                   'Воркер: @{username} ({tg_id})',
+    'payout_info': '#payment\n'
+                   '<u><b>💸 Запрос выплаты:</b></u>\n\n'
+                   '👛 <b>{wallet_type}</b>: <code>{wallet}</code>\n'
+                   '💵 Сумма: <code>{amount}</code>$\n'
+                   '👤 Воркер: @{username} (<code>{tg_id}</code>)',
     'enter_nickname': '✍️ Введите никнейм',
     'nickname_is_set': '✅ Установлен никнейм {}',
     'current_domain': '✅ Актуальный домен: <code>higolimo.com</code>',
@@ -105,7 +106,8 @@ buttons: dict[str, str] = {
     'workers_chat': '💬 Чат',
     'creo_yt_mr_beast': '🔴 YT | Mr. Beast',
     'creo_PewDiePie': ' 🔴 YT | PewDiePie',
-    'creo_poster_elon_musk': '📃 Poster | Elon Musk'
+    'creo_poster_elon_musk': '📃 Poster | Elon Musk',
+    'payment_accepted': '✅ Принять'
 }
 
 callbacks: dict[str, str] = {
@@ -143,5 +145,6 @@ callbacks: dict[str, str] = {
     buttons['workers_chat']: 'https://t.me/+8Xq9x3FT3m5jYWQy',
     buttons['creo_yt_mr_beast']: 'creo_button_yt_mr_beast',
     buttons['creo_PewDiePie']: 'creo_button_yt_PewDiePie',
-    buttons['creo_poster_elon_musk']: 'creo_button_poster_elon_musk'
+    buttons['creo_poster_elon_musk']: 'creo_button_poster_elon_musk',
+    buttons['payment_accepted']: 'payment_accepted_by_admin'
 }

@@ -75,3 +75,32 @@ async def get_limits(total_turnover: float) -> dict:
     if total_turnover < 10000:
         return {"proxy": 1, "numbers": 0}
     return {"proxy": 3, "numbers": 1}
+
+
+async def parse_payout_info(message: str) -> dict:
+    extracted_data = {}
+    success = True
+
+    wallet_match = re.search(r'👛\s(.*?):\s(.*)', message)
+    if wallet_match:
+        extracted_data['wallet_type'] = wallet_match.group(1)
+        extracted_data['wallet'] = wallet_match.group(2)
+    else:
+        success = False
+
+    amount_match = re.search(r'💵\sСумма:\s(.*?)\$', message)
+    if amount_match:
+        extracted_data['amount'] = float(amount_match.group(1))
+    else:
+        success = False
+
+    user_match = re.search(r'👤\sВоркер:\s@(.+?)\s\((\d+)\)', message)
+    if user_match:
+        extracted_data['username'] = user_match.group(1)
+        extracted_data['tg_id'] = int(user_match.group(2))
+    else:
+        success = False
+
+    extracted_data["success"] = success
+
+    return extracted_data
